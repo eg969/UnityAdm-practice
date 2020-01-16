@@ -1,0 +1,6 @@
+[submodule "submodules/libadm"]
+	path = submodules/libadm
+	url = https://github.com/IRT-Open-Source/libadm.git
+[submodule "submodules/libbw64"]
+	path = submodules/libbw64
+	url = https://github.com/IRT-Open-Source/libbw64.git
