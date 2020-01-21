@@ -20,9 +20,9 @@ public class AudioBlockWrapper
             {
                 [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
                 public byte[] name;
-                public int azimuth;
-                public int elevation;
-                public int distance;
+                public float x;
+                public float y;
+                public float z;
             };
 
             public static UnityAudioBlock getBlock(int blockIndex)

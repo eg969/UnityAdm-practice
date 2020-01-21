@@ -45,3 +45,8 @@ target_link_libraries(bw64_and_adm
 target_compile_features(bw64_and_adm
     PRIVATE
         cxx_std_17)
+
+install(TARGETS bw64_and_adm
+    BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}/Unity/Assets/plugins
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/Unity/Assets/plugins
+)

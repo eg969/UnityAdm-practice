@@ -26,9 +26,9 @@ extern "C"
     struct AdmAudioBlock
     {
         char name[100];
-        int azimuth;
-        int  elevation;
-        int distance;
+        float x;
+        float y;
+        float z;
     };
     
 
@@ -62,13 +62,12 @@ extern "C"
             auto blocks = channelFomat->getElements<adm::AudioBlockFormatObjects>();
             
             auto num = blocks[blockIndex].get<adm::Rtime>().get().count();
-            
-            auto pos = blocks[blockIndex].get<adm::SphericalPosition>();
+            auto pos = blocks[blockIndex].get<adm::CartesianPosition>();
 
             strcpy(currentBlock.name, name.c_str());
-            currentBlock.azimuth = pos.get<adm::Azimuth>().get();
-            currentBlock.elevation = pos.get<adm::Elevation>().get();
-            currentBlock.distance = pos.get<adm::Distance>().get();
+            currentBlock.x = pos.get<adm::X>().get();
+            currentBlock.y = pos.get<adm::Y>().get();
+            currentBlock.z = pos.get<adm::Z>().get();
 
         }
         return currentBlock;
