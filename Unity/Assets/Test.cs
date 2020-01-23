@@ -6,68 +6,116 @@ using System.Text;
 
 public class Test : MonoBehaviour
 {
-    public GameObject audioObject;
-    public GameObject audioObjectInstance;
+    public GameObject objectInstance;
+    public GameObject objectPositionInstance;
+    private List<GameObject> audioObjects = new List<GameObject>();
+
     int i = 0;
     private float lerpTime = 1f;
     private float currentLerpTime = 0f;
 
     UnityAudioBlock previousUnityBlock;
     UnityAudioBlock nextUnityBlock;
-    List<UnityAudioBlock> blocks = new List<UnityAudioBlock>();
+    //List<UnityAudioBlock> blocks = new List<UnityAudioBlock>();
+    List<List<UnityAudioBlock>> channelFormats = new List<List<UnityAudioBlock>>();
+    float prec = 0f;
+
     Vector3 start;
     Vector3 end;
-    float prec = 1f;
 
     void Start()
     {
-        /*reviousUnityBlock = getBlock(0);
-        nextUnityBlock = getBlock(1);
-        start = new Vector3(previousUnityBlock.x, previousUnityBlock.y, previousUnityBlock.z);
-        end = new Vector3(nextUnityBlock.x, nextUnityBlock.y, nextUnityBlock.z);*/
 
-        for (int k = 0; k < 7; k++)
+        int j = 0;
+
+        while (queryBlock(j, 0))
         {
-            UnityAudioBlock nextBlock = getBlock(k);
-            blocks.Add(nextBlock);
-            GameObject a = Instantiate(audioObjectInstance) as GameObject;
+            List<UnityAudioBlock> blocks = new List<UnityAudioBlock>();
+            int k = 0;
+            GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
+            audioObjects.Add(audioObjectInstance);
 
-            a.transform.position = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z);
+            while (queryBlock(j, k))
+            {
+                UnityAudioBlock nextBlock = getBlock(j, k);
+                blocks.Add(nextBlock);
+                GameObject objectPosition = Instantiate(objectPositionInstance) as GameObject;
+
+                objectPosition.transform.position = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z);
+                k++;
+            }
+
+            channelFormats.Add(blocks);
+            j++;
         }
+        //StartCoroutine(TransportBlocks());
+    }
 
+    IEnumerator TransportBlocks()
+    {  
+        int j = 0;
+
+        while (queryBlock(j, 0))
+        {
+            List<UnityAudioBlock> blocks = new List<UnityAudioBlock>();
+            int k = 0;
+            GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
+            audioObjects.Add(audioObjectInstance);
+
+            while (queryBlock(j, k))
+            {
+                UnityAudioBlock nextBlock = getBlock(j, k);
+                blocks.Add(nextBlock);
+                GameObject objectPosition = Instantiate(objectPositionInstance) as GameObject;
+
+                objectPosition.transform.position = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z);
+                k++;
+            }
+
+            channelFormats.Add(blocks);
+            j++;
+
+            yield return new WaitForSeconds(3);
+        }
     }
 
     void Update()
     {
-        if (prec == 1f)
+        for (int y = 0; y < channelFormats.Count; y++)
         {
-            if (i == 6)
+            i = 0;
+            if (i + 1 < channelFormats[y].Count)
             {
-                i = 0;
+                previousUnityBlock = channelFormats[y][i];
+
+                nextUnityBlock = channelFormats[y][i + 1];
+
+                lerpTime = nextUnityBlock.rTime - previousUnityBlock.rTime;
+                if (lerpTime == 0f) lerpTime = 1f;
+
+                start = new Vector3(previousUnityBlock.x, previousUnityBlock.y, previousUnityBlock.z);
+                end = new Vector3(nextUnityBlock.x, nextUnityBlock.y, nextUnityBlock.z);
+
+                if (prec == 1f)
+                {
+                    currentLerpTime = 0f;
+                    i++;
+                }
+
             }
 
-            currentLerpTime = 0f;
+            currentLerpTime += Time.deltaTime;
 
-            previousUnityBlock = blocks[i];
-            nextUnityBlock = blocks[i + 1];
-            i++;
+            if (currentLerpTime >= lerpTime)
+            {
+                currentLerpTime = lerpTime;
+            }
 
-            start = new Vector3(previousUnityBlock.x, previousUnityBlock.y, previousUnityBlock.z);
-            end = new Vector3(nextUnityBlock.x, nextUnityBlock.y, nextUnityBlock.z);
+            prec = (currentLerpTime / lerpTime);
+
+            audioObjects[y].transform.position = Vector3.Lerp(start, end, prec);
 
         }
-
-
-        currentLerpTime += Time.deltaTime;
-
-        if (currentLerpTime >= lerpTime)
-        {
-            currentLerpTime = lerpTime;
-        }
-
-        prec = (currentLerpTime / lerpTime);
-
-        audioObject.transform.position = Vector3.Lerp(start, end, prec);
     }
 
 }
