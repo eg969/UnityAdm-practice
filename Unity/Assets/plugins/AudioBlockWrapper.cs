@@ -12,7 +12,7 @@ public class AudioBlockWrapper
     #else
                 const string dll = " ";
     #endif
-        [DllImport(dll, CharSet = CharSet.Ansi)]
+        [DllImport(dll)]
         private static extern bool queryNextBlock(int cfIndex, int blockIndex);
 
         [DllImport(dll, CharSet = CharSet.Ansi)]
