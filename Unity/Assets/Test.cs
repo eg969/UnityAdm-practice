@@ -53,9 +53,9 @@ public class Test : MonoBehaviour
 
             Animation objectAnimation = audioObject.GetComponent<Animation>();
             AnimationClip clip = new AnimationClip();
+            clip.name = Encoding.ASCII.GetString(channelFormats[y][0].name);
             clip.legacy = true;
 
-            AnimationCurve curve;
             Keyframe[] xKeys = new Keyframe[channelFormats[y].Count];
             Keyframe[] yKeys = new Keyframe[channelFormats[y].Count];
             Keyframe[] zKeys = new Keyframe[channelFormats[y].Count];
@@ -67,17 +67,39 @@ public class Test : MonoBehaviour
                 zKeys[i] = new Keyframe(channelFormats[y][i].rTime, channelFormats[y][i].z);
             }
 
-            curve = new AnimationCurve(xKeys);
-            clip.SetCurve("", typeof(Transform), "localPosition.x", curve);
+            AnimationCurve xCurve = new AnimationCurve(xKeys);
+            clip.SetCurve("", typeof(Transform), "localPosition.x", xCurve);
 
-            curve = new AnimationCurve(yKeys);
-            clip.SetCurve("", typeof(Transform), "localPosition.y", curve);
+            AnimationCurve yCurve = new AnimationCurve(yKeys);
+            clip.SetCurve("", typeof(Transform), "localPosition.y", yCurve);
 
-            curve = new AnimationCurve(zKeys);
-            clip.SetCurve("", typeof(Transform), "localPosition.z", curve);
+            AnimationCurve zCurve = new AnimationCurve(zKeys);
+            clip.SetCurve("", typeof(Transform), "localPosition.z", zCurve);
 
             objectAnimation.AddClip(clip, clip.name);
-            objectAnimation.Play(clip.name);
+            objectAnimation.Play(clip.name, PlayMode.StopSameLayer);
+
+            xCurve.AddKey(new Keyframe(21.0f, 0.0f));
+            yCurve.AddKey(new Keyframe(21.0f, 10.0f));
+            zCurve.AddKey(new Keyframe(21.0f, 10.0f));
+
+            clip.SetCurve("", typeof(Transform), "localPosition.x", xCurve);
+            clip.SetCurve("", typeof(Transform), "localPosition.y", yCurve);
+            clip.SetCurve("", typeof(Transform), "localPosition.z", zCurve);
+
+            objectAnimation.PlayQueued(clip.name, QueueMode.PlayNow, PlayMode.StopAll);
+
+            xCurve.AddKey(new Keyframe(22.0f, 0.0f));
+            yCurve.AddKey(new Keyframe(22.0f, 0.0f));
+            zCurve.AddKey(new Keyframe(22.0f, 0.0f));
+
+            clip.SetCurve("", typeof(Transform), "localPosition.x", xCurve);
+            clip.SetCurve("", typeof(Transform), "localPosition.y", yCurve);
+            clip.SetCurve("", typeof(Transform), "localPosition.z", zCurve);
+
+            objectAnimation.PlayQueued(clip.name, QueueMode.PlayNow, PlayMode.StopAll);
+
+
 
         }
     }
