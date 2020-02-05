@@ -23,28 +23,37 @@ bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 
 extern "C"
 {
-    struct AdmAudioBlock
-    {
-        char name[100];
-        float rTime;
-        float x;
-        float y;
-        float z;
-    };
-    
 
-    AdmAudioBlock getNextBlock(int cfIndex, int blockIndex)
+    std::shared_ptr<adm::Document> parsedDocument;
+
+    void readAdm()
     {
-        AdmAudioBlock currentBlock;
-        std::string name;
-        
         auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
         
         auto aXml = reader->axmlChunk();
         
         std::stringstream stream;
         aXml->write(stream);
-        auto parsedDocument = adm::parseXml(stream);
+        parsedDocument = adm::parseXml(stream);
+        
+    }
+
+    struct AdmAudioBlock
+    {
+        bool newBlockFlag;
+        char name[100];
+        int cfId;
+        int blockId;
+        float rTime;
+        float x;
+        float y;
+        float z;
+    };
+
+    std::vector<adm::AudioBlockFormatObjects> blocks;
+
+    void readAvalibelBlocks()
+    {
         auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
         std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
         
@@ -55,25 +64,52 @@ extern "C"
                 notCommonDefs.push_back(channelFormat);
             }
         }
-    
-        name = notCommonDefs[cfIndex]->get<adm::AudioChannelFormatName>().get();
-        
-        auto blocks = notCommonDefs[cfIndex]->getElements<adm::AudioBlockFormatObjects>();
-        
-        auto num = blocks[blockIndex].get<adm::Rtime>().get().count();
-        auto pos = blocks[blockIndex].get<adm::CartesianPosition>();
+            
+        for (auto channelFormat : notCommonDefs)
+        {
+            auto newBlocks = channelFormat->getElements<adm::AudioBlockFormatObjects>();
+            
+            for(auto newBlock : newBlocks)
+            {
+                blocks.push_back(newBlock);
+            }
+        }
+    }
 
-        strcpy(currentBlock.name, name.c_str());
-        currentBlock.rTime = num/100000000.0;
-        currentBlock.x = pos.get<adm::X>().get();
-        currentBlock.y = pos.get<adm::Y>().get();
-        currentBlock.z = pos.get<adm::Z>().get();
-
+    AdmAudioBlock getNextBlock()
+    {
+        AdmAudioBlock currentBlock;
+        if(blocks.size() !=  0)
+        {
+            std::string name;
+            auto rTime = blocks[0].get<adm::Rtime>().get().count();
+            auto position = blocks[0].get<adm::CartesianPosition>();
+            int blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+            int cfId = 0;
+            
+            currentBlock.newBlockFlag = true;
+            strcpy(currentBlock.name, name.c_str());
+            currentBlock.cfId = cfId;
+            currentBlock.blockId = blockId;
+            currentBlock.rTime = rTime/100000000.0;
+            
+            currentBlock.x = position.get<adm::X>().get();
+            currentBlock.y = position.get<adm::Y>().get();
+            currentBlock.z = position.get<adm::Z>().get();
+            
+            blocks.erase(blocks.begin());
+        }
+        else
+        {
+            currentBlock.newBlockFlag = false;
+            readAvalibelBlocks();
+        }
         return currentBlock;
     }
     
     bool queryNextBlock(int cfIndex, int blockIndex)
     {
+        return true;
         int numOfBlocks;
         
         std::string name;
