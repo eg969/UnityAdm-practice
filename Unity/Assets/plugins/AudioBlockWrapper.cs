@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 public class AudioBlockWrapper
 {
@@ -23,7 +24,7 @@ public class AudioBlockWrapper
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         public struct CAudioBlock
         {
-            public bool newBlockFlag;
+            public byte newBlockFlag;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
             public byte[] name;
             public int cfId;
@@ -33,7 +34,6 @@ public class AudioBlockWrapper
             public float y;
             public float z;
         };
-
 
     public struct UnityAudioBlock
     {
@@ -54,6 +54,8 @@ public class AudioBlockWrapper
 
     public static List<UnityAudioChannelFormat> channelFormats = new List<UnityAudioChannelFormat>();
 
+    public static readonly object lockObject = new object();
+
     public static void readFile()
     {
         readAdm();
@@ -61,10 +63,12 @@ public class AudioBlockWrapper
 
     public static void getNewBlock()
     {
+        readFile();
         while (true)
         {
             CAudioBlock nextBlock = getNextBlock();
-            if (nextBlock.newBlockFlag)
+          
+            if (nextBlock.newBlockFlag != 0)
             {
                 UnityAudioBlock newBlock;
                 newBlock.name = Encoding.ASCII.GetString(nextBlock.name);
@@ -75,21 +79,39 @@ public class AudioBlockWrapper
                 newBlock.y = nextBlock.y;
                 newBlock.z = nextBlock.z;
 
-                foreach (UnityAudioChannelFormat channelFormat in channelFormats)
+                
+                bool found = false;
+
+                for (int i = 0; i < channelFormats.Count; i++)
                 {
-                    if (channelFormat.cfId == newBlock.cfId)
+                    if (channelFormats[i].cfId == newBlock.cfId)
                     {
-                        channelFormat.audioBlocks.Add(newBlock);
-                        return;
+                        lock (lockObject)
+                        {
+                            channelFormats[i].audioBlocks.Add(newBlock);
+                        }
+
+                        found = true;
                     }
                 }
-                UnityAudioChannelFormat newChannelFormat;
-                newChannelFormat.cfId = newBlock.cfId;
-                newChannelFormat.audioBlocks = new List<UnityAudioBlock>();
-                newChannelFormat.audioBlocks.Add(newBlock);
-                channelFormats.Add(newChannelFormat);
+                if (!found)
+                {
+                    UnityAudioChannelFormat newChannelFormat;
+                    newChannelFormat.cfId = newBlock.cfId;
+                    newChannelFormat.audioBlocks = new List<UnityAudioBlock>();
+                    newChannelFormat.audioBlocks.Add(newBlock);
+                    lock (lockObject)
+                    {
+                        channelFormats.Add(newChannelFormat);
+                    }
+                    
+                }
             }
+   
+            //Thread.Sleep(500);
+
         }
+
     }
 
     public static long nanoTime()

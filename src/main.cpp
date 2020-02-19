@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 #include "string.h"
+#include <map>
+#include <optional>
 
 bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
@@ -21,22 +23,32 @@ bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
     return isCommon;
 }
 
+template<typename Key, typename Value>
+std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key){
+    auto it = targetMap.find(key);
+    if(it == targetMap.end()) return std::optional<Value>();
+    return std::optional<Value>(it->second);
+}
+template<typename Key, typename Value>
+void setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
+    auto it = targetMap.find(key);
+    if(it == targetMap.end()){
+        targetMap.insert(std::make_pair(key, value));
+    } else {
+        it->second = value;
+    }
+}
+
 extern "C"
 {
 
     std::shared_ptr<adm::Document> parsedDocument;
+    
+    std::vector<adm::AudioBlockFormatObjects> blocks;
+    using ChannelFormatId = int;
+    using BlockIndex = int;
 
-    void readAdm()
-    {
-        auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
-        
-        auto aXml = reader->axmlChunk();
-        
-        std::stringstream stream;
-        aXml->write(stream);
-        parsedDocument = adm::parseXml(stream);
-        
-    }
+    std::map<ChannelFormatId,BlockIndex> knownBlocks;
 
     struct AdmAudioBlock
     {
@@ -45,12 +57,11 @@ extern "C"
         int cfId;
         int blockId;
         float rTime;
+        
         float x;
         float y;
         float z;
     };
-
-    std::vector<adm::AudioBlockFormatObjects> blocks;
 
     void readAvalibelBlocks()
     {
@@ -71,9 +82,32 @@ extern "C"
             
             for(auto newBlock : newBlocks)
             {
-                blocks.push_back(newBlock);
+                int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+                int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
+                
+                if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
+                {
+                    blocks.push_back(newBlock);
+                    setInMap(knownBlocks, cfId, blockId);
+                }
             }
         }
+    }
+
+    void readAdm()
+    {
+        blocks.clear();
+        knownBlocks.clear();
+        auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
+        
+        auto aXml = reader->axmlChunk();
+        
+        std::stringstream stream;
+        aXml->write(stream);
+        parsedDocument = adm::parseXml(stream);
+        
+        //readAvalibelBlocks();
+        
     }
 
     AdmAudioBlock getNextBlock()
@@ -84,14 +118,14 @@ extern "C"
             std::string name;
             auto rTime = blocks[0].get<adm::Rtime>().get().count();
             auto position = blocks[0].get<adm::CartesianPosition>();
-            int blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
-            int cfId = 0;
+            int blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
+            int cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
             
             currentBlock.newBlockFlag = true;
             strcpy(currentBlock.name, name.c_str());
             currentBlock.cfId = cfId;
             currentBlock.blockId = blockId;
-            currentBlock.rTime = rTime/100000000.0;
+            currentBlock.rTime = rTime/1000000000.0;
             
             currentBlock.x = position.get<adm::X>().get();
             currentBlock.y = position.get<adm::Y>().get();
@@ -102,6 +136,15 @@ extern "C"
         else
         {
             currentBlock.newBlockFlag = false;
+            std::string name{"EMPTY"};
+            strcpy(currentBlock.name, name.c_str());
+            currentBlock.cfId = 123;
+            currentBlock.blockId = 456;
+            currentBlock.rTime = 1.23;
+            currentBlock.x = 2.34;
+            currentBlock.y = 3.45;
+            currentBlock.z = 4.56;
+            
             readAvalibelBlocks();
         }
         return currentBlock;
