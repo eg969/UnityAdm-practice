@@ -16,7 +16,7 @@ public class Test : MonoBehaviour
     void Start()
     {
         newThread = new Thread(new ThreadStart(getNewBlock));
-        newThread.Start();
+        newThread.Start();  
     }
 
     void addAnimations()
@@ -27,63 +27,68 @@ public class Test : MonoBehaviour
             {
                 GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
                 audioObjects.Add(channelFormats[i].cfId, audioObjectInstance);
-                audioObjects[channelFormats[i].cfId].AddComponent<Animation>();
-                Animation objectAnimation = audioObjects[channelFormats[i].cfId].GetComponent<Animation>();
-                AnimationClip clip = new AnimationClip();
-                clip.name = channelFormats[i].cfId.ToString();
-                clip.legacy = true;
-
-                objectAnimation.AddClip(clip, clip.name);
-                objectAnimation.Play(clip.name, PlayMode.StopSameLayer);
+               
             }
-            if (channelFormats[i].audioBlocks.Count != 0)
+            if (channelFormats[i].audioBlocks.Count > 1 && !channelFormats[i].moivng)
             {
-                GameObject audioObject = audioObjects[channelFormats[i].cfId];
-                Animation anim = audioObject.GetComponent<Animation>();
-                AnimationClip animationClip = anim.GetClip(channelFormats[i].cfId.ToString());
-                AnimationCurve xCurve = new AnimationCurve();
-                AnimationCurve yCurve = new AnimationCurve();
-                AnimationCurve zCurve = new AnimationCurve();
 
-                
+                Vector3 start = new Vector3(channelFormats[i].audioBlocks[0].x, channelFormats[i].audioBlocks[0].y, channelFormats[i].audioBlocks[0].z);
+                Vector3 end = new Vector3(channelFormats[i].audioBlocks[1].x, channelFormats[i].audioBlocks[1].y, channelFormats[i].audioBlocks[1].z);
 
-                while (channelFormats[i].audioBlocks.Count != 0)
+                float duration;
+
+                channelFormats[i].startPos = start;
+                channelFormats[i].endPos = end;
+                channelFormats[i].currentLerpTime = 0f;
+                duration = channelFormats[i].audioBlocks[1].rTime - channelFormats[i].audioBlocks[0].rTime;
+
+                if (Time.time < channelFormats[i].audioBlocks[1].rTime)
                 {
-
-                    Keyframe xKey = new Keyframe(channelFormats[i].audioBlocks[0].rTime, channelFormats[i].audioBlocks[0].x);
-                    Keyframe yKey = new Keyframe(channelFormats[i].audioBlocks[0].rTime, channelFormats[i].audioBlocks[0].y);
-                    Keyframe zKey = new Keyframe(channelFormats[i].audioBlocks[0].rTime, channelFormats[i].audioBlocks[0].z);
-
-
-                    xCurve.AddKey(xKey);
-                    yCurve.AddKey(yKey);
-                    zCurve.AddKey(zKey);
-                    /*
-                    AnimationUtility.SetKeyLeftTangentMode(xCurve, xCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-                    AnimationUtility.SetKeyLeftTangentMode(yCurve, yCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-                    AnimationUtility.SetKeyLeftTangentMode(zCurve, zCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-
-                    AnimationUtility.SetKeyRightTangentMode(xCurve, xCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-                    AnimationUtility.SetKeyRightTangentMode(yCurve, yCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-                    AnimationUtility.SetKeyRightTangentMode(zCurve, zCurve.keys.Length - 1, AnimationUtility.TangentMode.Constant);
-                    */
-
-                    //Debug.Log("Clip len: " + animationClip.length);
-                    
-
-                    channelFormats[i].audioBlocks.RemoveAt(0);
-
+                    channelFormats[i].currentLerpTime = Time.time - channelFormats[i].audioBlocks[0].rTime;
+                }
+                else
+                {
+                    duration = 0;
                 }
 
-                animationClip.SetCurve("", typeof(Transform), "localPosition.x", xCurve);
-                animationClip.SetCurve("", typeof(Transform), "localPosition.y", yCurve);
-                animationClip.SetCurve("", typeof(Transform), "localPosition.z", zCurve);
 
-                anim.PlayQueued(animationClip.name, QueueMode.PlayNow, PlayMode.StopAll);
+                channelFormats[i].lerpTime = duration;
+                channelFormats[i].moivng = true;
 
+                channelFormats[i].audioBlocks.RemoveAt(0);
+            }     
+        }
+    }
 
+    void moveObjects()
+    {
+        for (int i = 0; i < channelFormats.Count; i++)
+        {
+            if (channelFormats[i].moivng)
+            {
+                float prec;
+
+                if (channelFormats[i].currentLerpTime >= channelFormats[i].lerpTime)
+                {
+                    channelFormats[i].currentLerpTime = channelFormats[i].lerpTime;
+                    channelFormats[i].moivng = false;
+                }
+
+                if (channelFormats[i].lerpTime == 0)
+                {
+                    channelFormats[i].moivng = false;
+                    prec = 1f;
+                }
+                else
+                {
+                    prec = channelFormats[i].currentLerpTime / channelFormats[i].lerpTime;
+                }
+
+               
+                Vector3 newPos = Vector3.Lerp(channelFormats[i].startPos, channelFormats[i].endPos, prec);
+                audioObjects[channelFormats[i].cfId].transform.position = newPos;
+                channelFormats[i].currentLerpTime += Time.deltaTime;
             }
-
         }
     }
     void Update()
@@ -92,6 +97,7 @@ public class Test : MonoBehaviour
         {
             addAnimations();
         }
+        moveObjects();
     }
 
 }

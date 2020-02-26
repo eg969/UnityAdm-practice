@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+
+
 public class AudioBlockWrapper
 {
     #if UNITY_STANDALONE_OSX
@@ -46,11 +48,19 @@ public class AudioBlockWrapper
         public float z;
     };
 
-    public struct UnityAudioChannelFormat
+
+    public class UnityAudioChannelFormat
     {
         public int cfId;
+        public Vector3 startPos;
+        public Vector3 endPos;
+        public bool moivng;
+        public float lerpTime;
+        public float currentLerpTime;
         public List<UnityAudioBlock> audioBlocks;
-    };
+    }
+
+
 
     public static List<UnityAudioChannelFormat> channelFormats = new List<UnityAudioChannelFormat>();
 
@@ -96,8 +106,13 @@ public class AudioBlockWrapper
                 }
                 if (!found)
                 {
-                    UnityAudioChannelFormat newChannelFormat;
+                    UnityAudioChannelFormat newChannelFormat = new UnityAudioChannelFormat();
                     newChannelFormat.cfId = newBlock.cfId;
+                    newChannelFormat.lerpTime = 0f;
+                    newChannelFormat.moivng = false;
+                    newChannelFormat.startPos = new Vector3();
+                    newChannelFormat.endPos = new Vector3();
+                    newChannelFormat.currentLerpTime = 0f;
                     newChannelFormat.audioBlocks = new List<UnityAudioBlock>();
                     newChannelFormat.audioBlocks.Add(newBlock);
                     lock (lockObject)
@@ -108,7 +123,7 @@ public class AudioBlockWrapper
                 }
             }
    
-            //Thread.Sleep(500);
+            //Thread.Sleep(50);
 
         }
 
