@@ -43,7 +43,7 @@ extern "C"
 {
 
     std::shared_ptr<adm::Document> parsedDocument;
-    
+
     std::vector<adm::AudioBlockFormatObjects> blocks;
     using ChannelFormatId = int;
     using BlockIndex = int;
@@ -57,7 +57,7 @@ extern "C"
         int cfId;
         int blockId;
         float rTime;
-        
+        float duration;
         float x;
         float y;
         float z;
@@ -67,7 +67,7 @@ extern "C"
     {
         auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
         std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
-        
+
         for (auto channelFormat: allChannelFormats)
         {
             if(!isCommonDefinition(channelFormat.get()))
@@ -75,16 +75,16 @@ extern "C"
                 notCommonDefs.push_back(channelFormat);
             }
         }
-            
+
         for (auto channelFormat : notCommonDefs)
         {
             auto newBlocks = channelFormat->getElements<adm::AudioBlockFormatObjects>();
-            
+
             for(auto newBlock : newBlocks)
             {
                 int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
                 int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
-                
+
                 if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
                 {
                     blocks.push_back(newBlock);
@@ -99,15 +99,15 @@ extern "C"
         blocks.clear();
         knownBlocks.clear();
         auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
-        
+
         auto aXml = reader->axmlChunk();
-        
+
         std::stringstream stream;
         aXml->write(stream);
         parsedDocument = adm::parseXml(stream);
-        
+
         //readAvalibelBlocks();
-        
+
     }
 
     AdmAudioBlock getNextBlock()
@@ -117,20 +117,24 @@ extern "C"
         {
             std::string name;
             auto rTime = blocks[0].get<adm::Rtime>().get().count();
+            float duration = 0.0;
+            if(blocks[0].has<adm::Duration>()) {
+                duration = blocks[0].get<adm::Duration>().get().count();
+            }
             auto position = blocks[0].get<adm::CartesianPosition>();
             int blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
             int cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
-            
+
             currentBlock.newBlockFlag = true;
             strcpy(currentBlock.name, name.c_str());
             currentBlock.cfId = cfId;
             currentBlock.blockId = blockId;
             currentBlock.rTime = rTime/1000000000.0;
-            
+            currentBlock.duration = duration/1000000000.0;
             currentBlock.x = position.get<adm::X>().get();
             currentBlock.y = position.get<adm::Y>().get();
             currentBlock.z = position.get<adm::Z>().get();
-            
+
             blocks.erase(blocks.begin());
         }
         else
@@ -144,29 +148,29 @@ extern "C"
             currentBlock.x = 2.34;
             currentBlock.y = 3.45;
             currentBlock.z = 4.56;
-            
+
             readAvalibelBlocks();
         }
         return currentBlock;
     }
-    
+
     bool queryNextBlock(int cfIndex, int blockIndex)
     {
         return true;
         int numOfBlocks;
-        
+
         std::string name;
-        
+
         auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
-        
+
         auto aXml = reader->axmlChunk();
-        
+
         std::stringstream stream;
         aXml->write(stream);
         auto parsedDocument = adm::parseXml(stream);
         auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
         std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
-        
+
         for (auto channelFormat: allChannelFormats)
         {
             if(!isCommonDefinition(channelFormat.get()))
@@ -174,15 +178,15 @@ extern "C"
                 notCommonDefs.push_back(channelFormat);
             }
         }
-        
+
         if(cfIndex < notCommonDefs.size())
         {
             name = notCommonDefs[cfIndex]->get<adm::AudioChannelFormatName>().get();
-            
+
             auto blocks = notCommonDefs[cfIndex]->getElements<adm::AudioBlockFormatObjects>();
-            
+
             numOfBlocks = blocks.size();
-            
+
             if(blockIndex < numOfBlocks)
             {
                 return true;
@@ -196,8 +200,8 @@ extern "C"
         {
             return false;
         }
-            
+
     }
 }
-    
+
 
