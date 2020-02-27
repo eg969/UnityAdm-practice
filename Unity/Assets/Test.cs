@@ -9,6 +9,8 @@ using UnityEditor;
 
 public class Test : MonoBehaviour
 {
+
+    public GameObject objectInstance;
     Thread getBlocksThread;
     Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
 
@@ -26,7 +28,9 @@ public class Test : MonoBehaviour
             {
                 if (!audioObjects.ContainsKey(channelFormat.Value.cfId))
                 {
-                    audioObjects.Add(channelFormat.Value.cfId, new GameObject(channelFormat.Value.name));
+                    GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
+                    audioObjectInstance.name = channelFormat.Value.name;
+                    audioObjects.Add(channelFormat.Value.cfId, audioObjectInstance);
                 }
 
                 doPositionFor(channelFormat.Value.cfId);
@@ -37,27 +41,37 @@ public class Test : MonoBehaviour
     void doPositionFor(int cfId)
     {
         float timeSnapshot = Time.fixedTime;
+        int blockIndex = 0;
 
-        while (channelFormats[cfId].currentAudioBlocksIndex < channelFormats[cfId].audioBlocks.Count)
+        while (blockIndex < channelFormats[cfId].audioBlocks.Count)
         {
-            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex];
+            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[blockIndex];
             if (audioBlock.startTime <= timeSnapshot)
             {
                 // This block has started. Has it ended?
                 if(audioBlock.endTime > timeSnapshot)
                 {
-                    // We are in the block - find the interpolant (progress in to interpolation ramp)
                     float interpolant = (timeSnapshot - audioBlock.startTime) / audioBlock.duration;
-                    audioObjects[cfId].transform.position = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
+                    
+                    // We are in the block - find the interpolant (progress in to interpolation ramp)
+                    Vector3 newPos = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
+                    /*if (cfId == 4097)
+                    {
+                        Debug.Log("Time: " + timeSnapshot + " CF: " + cfId + "  in block " + blockIndex + " Interp: " + interpolant +
+                            "\n         x: " + newPos.x + " y: " + newPos.y + " z: " + newPos.z +
+                        "\n         x: " + audioBlock.startPos.x + " y: " + audioBlock.startPos.y + " z: " + audioBlock.startPos.z +
+                        "\n         x: " + audioBlock.endPos.x + " y: " + audioBlock.endPos.y + " z: " + audioBlock.endPos.z);
+                        
+                    }*/
+                    audioObjects[cfId].transform.position = newPos;
                     break;
                 }
                 else
                 {
-                    Debug.Log(cfId + " " + channelFormats[cfId].currentAudioBlocksIndex);
                     // It has ended. Make sure we set the position to it's final resting place.
                     audioObjects[cfId].transform.position = audioBlock.endPos;
                     // Now increment currentAudioBlocksIndex and re-evaluate the while - we might have already started the next block.
-                    // TODO - can not modify from Dict - channelFormats[cfId].currentAudioBlocksIndex++;
+                    blockIndex++;
                 }
 
             }
