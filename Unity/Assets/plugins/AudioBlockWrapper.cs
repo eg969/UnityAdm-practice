@@ -39,7 +39,7 @@ public class AudioBlockWrapper
         public float z;
     };
 
-    public struct UnityAudioBlock
+    public class UnityAudioBlock
     {
         public int blockId;
         public float startTime;
@@ -49,7 +49,7 @@ public class AudioBlockWrapper
         public Vector3 endPos;
     };
 
-    public struct UnityAudioChannelFormat
+    public class UnityAudioChannelFormat
     {
         public string name;
         public int cfId;
@@ -57,7 +57,7 @@ public class AudioBlockWrapper
         public int currentAudioBlocksIndex;
     };
 
-    public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
+    public static List<UnityAudioChannelFormat> channelFormats = new List<UnityAudioChannelFormat>();
 
     public static readonly object lockObject = new object();
 
@@ -69,6 +69,7 @@ public class AudioBlockWrapper
     public static void getBlocksLoop()
     {
         readFile();
+
         while (true)
         {
             CAudioBlock nextBlock = getNextBlock();
@@ -88,13 +89,24 @@ public class AudioBlockWrapper
                     endPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z)
                 };
 
-                if (!channelFormats.ContainsKey(nextBlock.cfId))
+                int cfIndex = -1;
+                for(int i=0; i < channelFormats.Count; i++)
                 {
+                    if (channelFormats[i].cfId == nextBlock.cfId)
+                    {
+                        cfIndex = i;
+                        break;
+                    }
+                }
+
+                if (cfIndex < 0)
+                {
+                    // New Channel Format
                     lock (lockObject)
                     {
-
-                        channelFormats.Add(nextBlock.cfId,
-                            new UnityAudioChannelFormat {
+                        channelFormats.Add(
+                            new UnityAudioChannelFormat
+                            {
                                 name = Encoding.ASCII.GetString(nextBlock.name),
                                 cfId = nextBlock.cfId,
                                 audioBlocks = new List<UnityAudioBlock>(),
@@ -102,16 +114,17 @@ public class AudioBlockWrapper
                             }
                         );
                     }
+                    cfIndex = channelFormats.Count - 1;
                 }
 
-                if (channelFormats[nextBlock.cfId].audioBlocks.Count > 0) {
-                    UnityAudioBlock previousBlock = channelFormats[nextBlock.cfId].audioBlocks[channelFormats[nextBlock.cfId].audioBlocks.Count - 1];
+                if (channelFormats[cfIndex].audioBlocks.Count > 0) {
+                    UnityAudioBlock previousBlock = channelFormats[cfIndex].audioBlocks[channelFormats[cfIndex].audioBlocks.Count - 1];
                     lock (lockObject)
                     {
                         if (newBlock.blockId > previousBlock.blockId && newBlock.startTime >= previousBlock.endTime)
                         {
                             newBlock.startPos.Set(previousBlock.endPos.x, previousBlock.endPos.y, previousBlock.endPos.z);
-                            channelFormats[nextBlock.cfId].audioBlocks.Add(newBlock);
+                            channelFormats[cfIndex].audioBlocks.Add(newBlock);
                         }
                     }
                 }
@@ -119,7 +132,7 @@ public class AudioBlockWrapper
                 {
                     lock (lockObject)
                     {
-                        channelFormats[nextBlock.cfId].audioBlocks.Add(newBlock);
+                        channelFormats[cfIndex].audioBlocks.Add(newBlock);
                     }
                 }
             }

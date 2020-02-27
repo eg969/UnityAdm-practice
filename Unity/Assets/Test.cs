@@ -24,28 +24,27 @@ public class Test : MonoBehaviour
     {
         lock (lockObject)
         {
-            foreach (var channelFormat in channelFormats)
+            for(int cfIndex = 0; cfIndex < channelFormats.Count; cfIndex++)
             {
-                if (!audioObjects.ContainsKey(channelFormat.Value.cfId))
+                if (!audioObjects.ContainsKey(channelFormats[cfIndex].cfId))
                 {
                     GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
-                    audioObjectInstance.name = channelFormat.Value.name;
-                    audioObjects.Add(channelFormat.Value.cfId, audioObjectInstance);
+                    audioObjectInstance.name = channelFormats[cfIndex].name;
+                    audioObjects.Add(channelFormats[cfIndex].cfId, audioObjectInstance);
                 }
 
-                doPositionFor(channelFormat.Value.cfId);
+                doPositionFor(cfIndex);
             }
         }
     }
 
-    void doPositionFor(int cfId)
+    void doPositionFor(int cfIndex)
     {
         float timeSnapshot = Time.fixedTime;
-        int blockIndex = 0;
 
-        while (blockIndex < channelFormats[cfId].audioBlocks.Count)
+        while (channelFormats[cfIndex].currentAudioBlocksIndex < channelFormats[cfIndex].audioBlocks.Count)
         {
-            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[blockIndex];
+            UnityAudioBlock audioBlock = channelFormats[cfIndex].audioBlocks[channelFormats[cfIndex].currentAudioBlocksIndex];
             if (audioBlock.startTime <= timeSnapshot)
             {
                 // This block has started. Has it ended?
@@ -63,15 +62,15 @@ public class Test : MonoBehaviour
                         "\n         x: " + audioBlock.endPos.x + " y: " + audioBlock.endPos.y + " z: " + audioBlock.endPos.z);
                         
                     }*/
-                    audioObjects[cfId].transform.position = newPos;
+                    audioObjects[channelFormats[cfIndex].cfId].transform.position = newPos;
                     break;
                 }
                 else
                 {
                     // It has ended. Make sure we set the position to it's final resting place.
-                    audioObjects[cfId].transform.position = audioBlock.endPos;
+                    audioObjects[channelFormats[cfIndex].cfId].transform.position = audioBlock.endPos;
                     // Now increment currentAudioBlocksIndex and re-evaluate the while - we might have already started the next block.
-                    blockIndex++;
+                    channelFormats[cfIndex].currentAudioBlocksIndex++;
                 }
 
             }
