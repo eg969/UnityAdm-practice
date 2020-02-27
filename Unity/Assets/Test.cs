@@ -41,11 +41,10 @@ public class Test : MonoBehaviour
     void doPositionFor(int cfId)
     {
         float timeSnapshot = Time.fixedTime;
-        int blockIndex = 0;
 
-        while (blockIndex < channelFormats[cfId].audioBlocks.Count)
+        while (channelFormats[cfId].currentAudioBlocksIndex < channelFormats[cfId].audioBlocks.Count)
         {
-            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[blockIndex];
+            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex];
             if (audioBlock.startTime <= timeSnapshot)
             {
                 // This block has started. Has it ended?
@@ -71,7 +70,7 @@ public class Test : MonoBehaviour
                     // It has ended. Make sure we set the position to it's final resting place.
                     audioObjects[cfId].transform.position = audioBlock.endPos;
                     // Now increment currentAudioBlocksIndex and re-evaluate the while - we might have already started the next block.
-                    blockIndex++;
+                    channelFormats[cfId].currentAudioBlocksIndex++;
                 }
 
             }

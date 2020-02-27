@@ -39,7 +39,7 @@ public class AudioBlockWrapper
         public float z;
     };
 
-    public struct UnityAudioBlock
+    public class UnityAudioBlock
     {
         public int blockId;
         public float startTime;
@@ -49,7 +49,7 @@ public class AudioBlockWrapper
         public Vector3 endPos;
     };
 
-    public struct UnityAudioChannelFormat
+    public class UnityAudioChannelFormat
     {
         public string name;
         public int cfId;
