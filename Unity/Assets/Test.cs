@@ -14,14 +14,17 @@ public class Test : MonoBehaviour
     Thread getBlocksThread;
     Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
 
-    void Start()
+
+    void Awake()
     {
+        readFile();
         getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
         getBlocksThread.Start();
     }
 
     void Update()
     {
+        float time = Time.fixedTime;
         List<int> cfIdsToProcess;
 
         lock (activeChannelFormats)

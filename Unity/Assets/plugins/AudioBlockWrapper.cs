@@ -67,7 +67,7 @@ public class AudioBlockWrapper
 
     public static void getBlocksLoop()
     {
-        readFile();
+        //readFile();
         while (true)
         {
             CAudioBlock nextBlock = getNextBlock();

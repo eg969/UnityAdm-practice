@@ -110,6 +110,12 @@ extern "C"
     AdmAudioBlock getNextBlock()
     {
         AdmAudioBlock currentBlock;
+        
+        if(blocks.size() ==  0)
+        {
+            readAvalibelBlocks();
+        }
+        
         if(blocks.size() !=  0)
         {
             std::string name;
@@ -136,58 +142,9 @@ extern "C"
         else
         {
             currentBlock.newBlockFlag = false;
-            readAvalibelBlocks();
         }
+        
         return currentBlock;
-    }
-
-    bool queryNextBlock(int cfIndex, int blockIndex)
-    {
-        return true;
-        int numOfBlocks;
-
-        std::string name;
-
-        auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
-
-        auto aXml = reader->axmlChunk();
-
-        std::stringstream stream;
-        aXml->write(stream);
-        auto parsedDocument = adm::parseXml(stream);
-        auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
-        std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
-
-        for (auto channelFormat: allChannelFormats)
-        {
-            if(!isCommonDefinition(channelFormat.get()))
-            {
-                notCommonDefs.push_back(channelFormat);
-            }
-        }
-
-        if(cfIndex < notCommonDefs.size())
-        {
-            name = notCommonDefs[cfIndex]->get<adm::AudioChannelFormatName>().get();
-
-            auto blocks = notCommonDefs[cfIndex]->getElements<adm::AudioBlockFormatObjects>();
-
-            numOfBlocks = blocks.size();
-
-            if(blockIndex < numOfBlocks)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-
     }
 }
 
