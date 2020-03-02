@@ -22,20 +22,25 @@ public class Test : MonoBehaviour
 
     void Update()
     {
-        lock (lockObject)
-        {
-            foreach (var channelFormat in channelFormats)
-            {
-                if (!audioObjects.ContainsKey(channelFormat.Value.cfId))
-                {
-                    GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
-                    audioObjectInstance.name = channelFormat.Value.name;
-                    audioObjects.Add(channelFormat.Value.cfId, audioObjectInstance);
-                }
+        List<int> cfIdsToProcess;
 
-                doPositionFor(channelFormat.Value.cfId);
-            }
+        lock (activeChannelFormats)
+        {
+            cfIdsToProcess = new List<int>(activeChannelFormats);
         }
+
+        foreach (int cfId in cfIdsToProcess)
+        {
+            if (!audioObjects.ContainsKey(cfId))
+            {
+                GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
+                audioObjectInstance.name = channelFormats[cfId].name;
+                audioObjects.Add(channelFormats[cfId].cfId, audioObjectInstance);
+            }
+
+            doPositionFor(cfId);
+        }
+
     }
 
     void doPositionFor(int cfId)
@@ -44,6 +49,7 @@ public class Test : MonoBehaviour
 
         while (channelFormats[cfId].currentAudioBlocksIndex < channelFormats[cfId].audioBlocks.Count)
         {
+            //lock
             UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex];
             if (audioBlock.startTime <= timeSnapshot)
             {
@@ -54,14 +60,6 @@ public class Test : MonoBehaviour
                     
                     // We are in the block - find the interpolant (progress in to interpolation ramp)
                     Vector3 newPos = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
-                    /*if (cfId == 4097)
-                    {
-                        Debug.Log("Time: " + timeSnapshot + " CF: " + cfId + "  in block " + blockIndex + " Interp: " + interpolant +
-                            "\n         x: " + newPos.x + " y: " + newPos.y + " z: " + newPos.z +
-                        "\n         x: " + audioBlock.startPos.x + " y: " + audioBlock.startPos.y + " z: " + audioBlock.startPos.z +
-                        "\n         x: " + audioBlock.endPos.x + " y: " + audioBlock.endPos.y + " z: " + audioBlock.endPos.z);
-                        
-                    }*/
                     audioObjects[cfId].transform.position = newPos;
                     break;
                 }

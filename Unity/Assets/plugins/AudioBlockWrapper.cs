@@ -10,13 +10,13 @@ using UnityEngine;
 
 public class AudioBlockWrapper
 {
-    #if UNITY_STANDALONE_OSX
-        const string dll = "bw64_and_adm";
-    #elif UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_OSX
+    const string dll = "bw64_and_adm";
+#elif UNITY_STANDALONE_WIN
         const string dll = " ";
-    #else
+#else
         const string dll = " ";
-    #endif
+#endif
 
     [DllImport(dll)]
     private static extern void readAdm();
@@ -58,8 +58,7 @@ public class AudioBlockWrapper
     };
 
     public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
-
-    public static readonly object lockObject = new object();
+    public static List<int> activeChannelFormats = new List<int>();
 
     public static void readFile()
     {
@@ -79,7 +78,8 @@ public class AudioBlockWrapper
                 // (it's an ADM stipulation anyway, although might not be the case for S-ADM depending upon the transport mechanism used.)
                 // We do simple checks to confirm this, and discard those blocks that don't continue on from existing blocks.
 
-                UnityAudioBlock newBlock = new UnityAudioBlock {
+                UnityAudioBlock newBlock = new UnityAudioBlock
+                {
                     blockId = nextBlock.blockId,
                     startTime = nextBlock.rTime,
                     endTime = nextBlock.rTime + nextBlock.duration,
@@ -90,11 +90,11 @@ public class AudioBlockWrapper
 
                 if (!channelFormats.ContainsKey(nextBlock.cfId))
                 {
-                    lock (lockObject)
+                    lock (channelFormats)
                     {
-
                         channelFormats.Add(nextBlock.cfId,
-                            new UnityAudioChannelFormat {
+                            new UnityAudioChannelFormat
+                            {
                                 name = Encoding.ASCII.GetString(nextBlock.name),
                                 cfId = nextBlock.cfId,
                                 audioBlocks = new List<UnityAudioBlock>(),
@@ -102,32 +102,32 @@ public class AudioBlockWrapper
                             }
                         );
                     }
+
+                    lock (activeChannelFormats)
+                    {
+                        activeChannelFormats.Add(nextBlock.cfId);
+                    }
                 }
 
-                if (channelFormats[nextBlock.cfId].audioBlocks.Count > 0) {
-                    UnityAudioBlock previousBlock = channelFormats[nextBlock.cfId].audioBlocks[channelFormats[nextBlock.cfId].audioBlocks.Count - 1];
-                    lock (lockObject)
-                    {
-                        if (newBlock.blockId > previousBlock.blockId && newBlock.startTime >= previousBlock.endTime)
-                        {
-                            newBlock.startPos.Set(previousBlock.endPos.x, previousBlock.endPos.y, previousBlock.endPos.z);
-                            channelFormats[nextBlock.cfId].audioBlocks.Add(newBlock);
-                        }
-                    }
-                }
-                else
+                if (channelFormats[nextBlock.cfId].audioBlocks.Count > 0)
                 {
-                    lock (lockObject)
+                    UnityAudioBlock previousBlock = channelFormats[nextBlock.cfId].audioBlocks[channelFormats[nextBlock.cfId].audioBlocks.Count - 1];
+
+                    if (newBlock.blockId > previousBlock.blockId && newBlock.startTime >= previousBlock.endTime)
                     {
-                        channelFormats[nextBlock.cfId].audioBlocks.Add(newBlock);
+                        newBlock.startPos.Set(previousBlock.endPos.x, previousBlock.endPos.y, previousBlock.endPos.z);
                     }
+
                 }
+
+                lock (channelFormats)
+                {
+                    channelFormats[nextBlock.cfId].audioBlocks.Add(newBlock);
+                }
+
             }
 
             Thread.Sleep(20);
-
         }
-
     }
-
 }

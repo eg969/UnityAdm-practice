@@ -105,9 +105,6 @@ extern "C"
         std::stringstream stream;
         aXml->write(stream);
         parsedDocument = adm::parseXml(stream);
-
-        //readAvalibelBlocks();
-
     }
 
     AdmAudioBlock getNextBlock()
@@ -134,21 +131,11 @@ extern "C"
             currentBlock.x = position.get<adm::X>().get();
             currentBlock.y = position.get<adm::Y>().get();
             currentBlock.z = position.get<adm::Z>().get();
-
             blocks.erase(blocks.begin());
         }
         else
         {
             currentBlock.newBlockFlag = false;
-            std::string name{"EMPTY"};
-            strcpy(currentBlock.name, name.c_str());
-            currentBlock.cfId = 123;
-            currentBlock.blockId = 456;
-            currentBlock.rTime = 1.23;
-            currentBlock.x = 2.34;
-            currentBlock.y = 3.45;
-            currentBlock.z = 4.56;
-
             readAvalibelBlocks();
         }
         return currentBlock;
