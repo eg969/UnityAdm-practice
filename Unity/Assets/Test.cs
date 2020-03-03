@@ -17,9 +17,11 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        readFile();
-        getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
-        getBlocksThread.Start();
+        if (readFile("/Users/edgarsg/Desktop/test1.wav"))
+        {
+            getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
+            getBlocksThread.Start();
+        }
     }
 
     void Update()

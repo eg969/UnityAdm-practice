@@ -19,10 +19,13 @@ public class AudioBlockWrapper
 #endif
 
     [DllImport(dll)]
-    private static extern void readAdm();
+    private static extern int readAdm(byte[] filePath);
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
     private static extern CAudioBlock getNextBlock();
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    private static extern IntPtr getLatestException();
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct CAudioBlock
@@ -33,10 +36,14 @@ public class AudioBlockWrapper
         public int cfId;
         public int blockId;
         public float rTime;
-        public float duration; // TODO: Implement in C++
+        public float duration;
+        public float interpolationLength;
         public float x;
         public float y;
         public float z;
+        public float gain;
+        public int jumpPosition;
+        public int moveSpherically;
     };
 
     public class UnityAudioBlock
@@ -45,8 +52,13 @@ public class AudioBlockWrapper
         public float startTime;
         public float endTime;
         public float duration;
+        public float interpolationLength;
         public Vector3 startPos;
         public Vector3 endPos;
+        public float gain;
+        public bool jumpPosition;
+        public bool moveSpherically;
+
     };
 
     public class UnityAudioChannelFormat
@@ -60,14 +72,22 @@ public class AudioBlockWrapper
     public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
     public static List<int> activeChannelFormats = new List<int>();
 
-    public static void readFile()
+    public static bool readFile(string filePath)
     {
-        readAdm();
+        if (readAdm(Encoding.ASCII.GetBytes(filePath)) == 0)
+        {
+            return true;
+        }
+        else
+        {
+            string ansi = Marshal.PtrToStringAnsi(getLatestException());
+            UnityEngine.Debug.Log(ansi);
+            return false;
+        }
     }
 
     public static void getBlocksLoop()
     {
-        //readFile();
         while (true)
         {
             CAudioBlock nextBlock = getNextBlock();
@@ -77,6 +97,26 @@ public class AudioBlockWrapper
                 // We assume the blocks will come through in order for optimisation purposes
                 // (it's an ADM stipulation anyway, although might not be the case for S-ADM depending upon the transport mechanism used.)
                 // We do simple checks to confirm this, and discard those blocks that don't continue on from existing blocks.
+                bool jumpPos = false;
+                bool moveSpher = false;
+
+                if (nextBlock.jumpPosition != 0)
+                {
+                    jumpPos = true;
+                }
+                else
+                {
+                    jumpPos = false;
+                }
+                if (nextBlock.moveSpherically != 0)
+                {
+                    moveSpher = true;
+                }
+                else
+                {
+                    moveSpher = false;
+                }
+
 
                 UnityAudioBlock newBlock = new UnityAudioBlock
                 {
@@ -84,8 +124,12 @@ public class AudioBlockWrapper
                     startTime = nextBlock.rTime,
                     endTime = nextBlock.rTime + nextBlock.duration,
                     duration = nextBlock.duration,
+                    interpolationLength = nextBlock.interpolationLength,
                     startPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z), // Will be overwritten if we find a previous block, otherwise (if first block) this is correct
-                    endPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z)
+                    endPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z),
+                    gain = nextBlock.gain,
+                    jumpPosition = jumpPos,
+                    moveSpherically = moveSpher
                 };
 
                 if (!channelFormats.ContainsKey(nextBlock.cfId))

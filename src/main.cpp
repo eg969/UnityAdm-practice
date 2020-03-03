@@ -7,6 +7,7 @@
 #include "string.h"
 #include <map>
 #include <optional>
+#include <math.h>
 
 bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
@@ -43,6 +44,11 @@ extern "C"
 {
 
     std::shared_ptr<adm::Document> parsedDocument;
+    std::string latestExceptionMsg{""};
+    
+    const char* getLatestException(){
+        return latestExceptionMsg.c_str();
+    }
 
     std::vector<adm::AudioBlockFormatObjects> blocks;
     using ChannelFormatId = int;
@@ -58,9 +64,13 @@ extern "C"
         int blockId;
         float rTime;
         float duration;
+        float interpolationLength;
         float x;
         float y;
         float z;
+        float gain;
+        int jumpPosition;
+        int moveSpherically;
     };
 
     void readAvalibelBlocks()
@@ -94,23 +104,31 @@ extern "C"
         }
     }
 
-    void readAdm()
+    int readAdm(char filePath[2048])
     {
         blocks.clear();
         knownBlocks.clear();
-        auto reader = bw64::readFile("/Users/edgarsg/Desktop/test.wav");
+        try
+        {
+            auto reader = bw64::readFile(filePath);
+            auto aXml = reader->axmlChunk();
 
-        auto aXml = reader->axmlChunk();
-
-        std::stringstream stream;
-        aXml->write(stream);
-        parsedDocument = adm::parseXml(stream);
+            std::stringstream stream;
+            aXml->write(stream);
+            parsedDocument = adm::parseXml(stream);
+        }
+        catch (std::exception &e)
+        {
+            latestExceptionMsg = e.what();
+            return 1;
+        }
+        return 0;
     }
 
     AdmAudioBlock getNextBlock()
     {
         AdmAudioBlock currentBlock;
-        
+
         if(blocks.size() ==  0)
         {
             readAvalibelBlocks();
@@ -118,25 +136,61 @@ extern "C"
         
         if(blocks.size() !=  0)
         {
+            currentBlock.duration = 0;
             std::string name;
-            auto rTime = blocks[0].get<adm::Rtime>().get().count();
-            float duration = 0.0;
-            if(blocks[0].has<adm::Duration>()) {
-                duration = blocks[0].get<adm::Duration>().get().count();
+            currentBlock.moveSpherically = 0;
+            if(blocks[0].has<adm::Rtime>())currentBlock.rTime = blocks[0].get<adm::Rtime>().get().count()/1000000000.0;
+            if(blocks[0].has<adm::Duration>())currentBlock.duration = blocks[0].get<adm::Duration>().get().count()/1000000000.0;
+            
+            if(blocks[0].has<adm::JumpPosition>())
+            {
+                if(blocks[0].get<adm::JumpPosition>().has<adm::JumpPositionFlag>())
+                {
+                    if(blocks[0].get<adm::JumpPosition>().get<adm::JumpPositionFlag>().get())
+                    {
+                        currentBlock.jumpPosition = 1;
+                    }
+                    else
+                    {
+                        currentBlock.jumpPosition = 0;
+                    }
+                }
+                
+                if((blocks[0].get<adm::JumpPosition>().has<adm::InterpolationLength>()))currentBlock.interpolationLength = blocks[0].get<adm::JumpPosition>().get<adm::InterpolationLength>().get().count()/1000000000.0;
             }
-            auto position = blocks[0].get<adm::CartesianPosition>();
-            int blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
-            int cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
-
+            
+            if(blocks[0].has<adm::Gain>())currentBlock.gain = blocks[0].get<adm::Gain>().get();
+            
+            if(blocks[0].has<adm::CartesianPosition>())
+            {
+                currentBlock.moveSpherically = 0;
+                auto position = blocks[0].get<adm::CartesianPosition>();
+                if(position.has<adm::X>())currentBlock.x = position.get<adm::X>().get();;
+                if(position.has<adm::Y>())currentBlock.y = position.get<adm::Y>().get();;
+                if(position.has<adm::Z>())currentBlock.z = position.get<adm::Z>().get();;
+            }
+            else if(blocks[0].has<adm::SphericalPosition>())
+            {
+                currentBlock.moveSpherically = 1;
+                auto position = blocks[0].get<adm::SphericalPosition>();
+                if(position.has<adm::Azimuth>())
+                {
+                    currentBlock.x = position.get<adm::Distance>().get() * sin((3.14/180.0)*position.get<adm::Elevation>().get() * cos((3.14/180.0)*position.get<adm::Azimuth>().get()));
+                }
+                if(position.has<adm::Elevation>())
+                {
+                    currentBlock.y = position.get<adm::Distance>().get() * sin((3.14/180.0)*position.get<adm::Elevation>().get() * sin((3.14/180.0)*position.get<adm::Azimuth>().get()));
+                }
+                if(position.has<adm::Distance>())
+                {
+                    currentBlock.z = position.get<adm::Distance>().get() * cos((3.14/180.0)*position.get<adm::Elevation>().get());
+                }
+            }
+            
             currentBlock.newBlockFlag = true;
             strcpy(currentBlock.name, name.c_str());
-            currentBlock.cfId = cfId;
-            currentBlock.blockId = blockId;
-            currentBlock.rTime = rTime/1000000000.0;
-            currentBlock.duration = duration/1000000000.0;
-            currentBlock.x = position.get<adm::X>().get();
-            currentBlock.y = position.get<adm::Y>().get();
-            currentBlock.z = position.get<adm::Z>().get();
+            currentBlock.cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+            currentBlock.blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
             blocks.erase(blocks.begin());
         }
         else
