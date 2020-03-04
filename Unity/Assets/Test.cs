@@ -17,7 +17,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/test3.wav"))
+        if (readFile("/Users/edgarsg/Desktop/test1.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -62,9 +62,17 @@ public class Test : MonoBehaviour
                 if(audioBlock.endTime > timeSnapshot)
                 {
                     float interpolant = (timeSnapshot - audioBlock.startTime) / audioBlock.duration;
-                    
+
                     // We are in the block - find the interpolant (progress in to interpolation ramp)
-                    Vector3 newPos = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
+                    Vector3 newPos;
+                    if (audioBlock.moveSpherically)
+                    {
+                        newPos = Vector3.Slerp(audioBlock.startPos, audioBlock.endPos, interpolant);
+                    }
+                    else
+                    {
+                        newPos = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
+                    }
                     audioObjects[cfId].transform.position = newPos;
                     break;
                 }
