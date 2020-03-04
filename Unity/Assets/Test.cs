@@ -17,7 +17,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/test1.wav"))
+        if (readFile("/Users/edgarsg/Desktop/test3.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -82,6 +82,7 @@ public class Test : MonoBehaviour
                 //The current block hasn't started yet. Do nothing.
                 break;
             }
+
         }
     }
 

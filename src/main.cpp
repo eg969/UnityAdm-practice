@@ -9,6 +9,9 @@
 #include <optional>
 #include <math.h>
 
+#define TO_RAD 3.14/180
+
+
 bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
     auto idString = adm::formatId(channelFormat->get<adm::AudioChannelFormatId>());
@@ -175,15 +178,22 @@ extern "C"
                 auto position = blocks[0].get<adm::SphericalPosition>();
                 if(position.has<adm::Azimuth>())
                 {
-                    currentBlock.x = position.get<adm::Distance>().get() * sin((3.14/180.0)*position.get<adm::Elevation>().get() * cos((3.14/180.0)*position.get<adm::Azimuth>().get()));
+                    int x = position.get<adm::Distance>().get() * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
+
+                    currentBlock.x = x;
                 }
                 if(position.has<adm::Elevation>())
                 {
-                    currentBlock.y = position.get<adm::Distance>().get() * sin((3.14/180.0)*position.get<adm::Elevation>().get() * sin((3.14/180.0)*position.get<adm::Azimuth>().get()));
+                    
+                    int y = position.get<adm::Distance>().get() * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
+
+                    currentBlock.y = y;
                 }
                 if(position.has<adm::Distance>())
                 {
-                    currentBlock.z = position.get<adm::Distance>().get() * cos((3.14/180.0)*position.get<adm::Elevation>().get());
+                    int z = position.get<adm::Distance>().get() * sin(TO_RAD * position.get<adm::Elevation>().get());
+
+                    currentBlock.z = z;
                 }
             }
             

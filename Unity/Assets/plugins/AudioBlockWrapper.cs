@@ -74,7 +74,10 @@ public class AudioBlockWrapper
 
     public static bool readFile(string filePath)
     {
-        if (readAdm(Encoding.ASCII.GetBytes(filePath)) == 0)
+        byte[] byteArray;
+        byteArray = Encoding.ASCII.GetBytes(filePath + '\0');
+
+        if (readAdm(byteArray) == 0)
         {
             return true;
         }
@@ -125,8 +128,9 @@ public class AudioBlockWrapper
                     endTime = nextBlock.rTime + nextBlock.duration,
                     duration = nextBlock.duration,
                     interpolationLength = nextBlock.interpolationLength,
-                    startPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z), // Will be overwritten if we find a previous block, otherwise (if first block) this is correct
-                    endPos = new Vector3(nextBlock.x, nextBlock.y, nextBlock.z),
+                    // TODO: explain why x<-->z 
+                    startPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y), // Will be overwritten if we find a previous block, otherwise (if first block) this is correct
+                    endPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y),
                     gain = nextBlock.gain,
                     jumpPosition = jumpPos,
                     moveSpherically = moveSpher
