@@ -59,6 +59,16 @@ extern "C"
 
     std::map<ChannelFormatId,BlockIndex> knownBlocks;
 
+
+    struct holdParameters
+    {
+        float gain;
+        float distance;
+    };
+    
+    holdParameters previousParameters;
+
+    
     struct AdmAudioBlock
     {
         bool newBlockFlag;
@@ -111,6 +121,9 @@ extern "C"
     {
         blocks.clear();
         knownBlocks.clear();
+        previousParameters.gain = 1.0;
+        previousParameters.distance = 1.0;
+        
         try
         {
             auto reader = bw64::readFile(filePath);
@@ -131,6 +144,20 @@ extern "C"
     AdmAudioBlock getNextBlock()
     {
         AdmAudioBlock currentBlock;
+        
+        currentBlock.newBlockFlag = false;
+        strcpy(currentBlock.name, std::string("").c_str());
+        currentBlock.cfId = 0;
+        currentBlock.blockId = 0;
+        currentBlock.rTime = 0.0;
+        currentBlock.duration = 0.0;
+        currentBlock.interpolationLength = 0.0;
+        currentBlock.x = 0.0;
+        currentBlock.y = 0.0;
+        currentBlock.z = 0.0;
+        currentBlock.gain = 1.0;
+        currentBlock.jumpPosition = 0;
+        currentBlock.moveSpherically = 0;
 
         if(blocks.size() ==  0)
         {
@@ -139,9 +166,9 @@ extern "C"
         
         if(blocks.size() !=  0)
         {
-            currentBlock.duration = 0;
+            
             std::string name;
-            currentBlock.moveSpherically = 0;
+            
             if(blocks[0].has<adm::Rtime>())currentBlock.rTime = blocks[0].get<adm::Rtime>().get().count()/1000000000.0;
             if(blocks[0].has<adm::Duration>())currentBlock.duration = blocks[0].get<adm::Duration>().get().count()/1000000000.0;
             
@@ -162,8 +189,11 @@ extern "C"
                 if((blocks[0].get<adm::JumpPosition>().has<adm::InterpolationLength>()))currentBlock.interpolationLength = blocks[0].get<adm::JumpPosition>().get<adm::InterpolationLength>().get().count()/1000000000.0;
             }
             
-            if(blocks[0].has<adm::Gain>())currentBlock.gain = blocks[0].get<adm::Gain>().get();
-            
+            if(blocks[0].has<adm::Gain>())
+            {
+                currentBlock.gain = blocks[0].get<adm::Gain>().get();
+            }
+
             if(blocks[0].has<adm::CartesianPosition>())
             {
                 currentBlock.moveSpherically = 0;
@@ -192,9 +222,10 @@ extern "C"
                 if(position.has<adm::Distance>())
                 {
                     int z = position.get<adm::Distance>().get() * sin(TO_RAD * position.get<adm::Elevation>().get());
-
+                    
                     currentBlock.z = z;
                 }
+                
             }
             
             currentBlock.newBlockFlag = true;

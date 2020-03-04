@@ -13,11 +13,11 @@ public class Test : MonoBehaviour
     public GameObject objectInstance;
     Thread getBlocksThread;
     Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
-
+    string fileToRead = "/Users/edgarsg/Desktop/test3.wav";
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/test1.wav"))
+        if (readFile(fileToRead))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -39,6 +39,11 @@ public class Test : MonoBehaviour
             if (!audioObjects.ContainsKey(cfId))
             {
                 GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
+                audioObjectInstance.AddComponent<AudioSource>();
+                //audi
+                //audioObjectInstance.GetComponent<AudioSource>().clip =  AudioClip.Create(fileToRead,);
+                audioObjectInstance.GetComponent<AudioSource>().dopplerLevel = 0;
+                audioObjectInstance.GetComponent<AudioSource>().playOnAwake = true;
                 audioObjectInstance.name = channelFormats[cfId].name;
                 audioObjects.Add(channelFormats[cfId].cfId, audioObjectInstance);
             }
