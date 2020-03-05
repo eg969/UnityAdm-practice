@@ -48,7 +48,8 @@ extern "C"
 
     std::shared_ptr<adm::Document> parsedDocument;
     std::string latestExceptionMsg{""};
-    
+    std::unique_ptr<bw64::Bw64Reader> reader;
+
     const char* getLatestException(){
         return latestExceptionMsg.c_str();
     }
@@ -123,10 +124,11 @@ extern "C"
         knownBlocks.clear();
         previousParameters.gain = 1.0;
         previousParameters.distance = 1.0;
+        reader = nullptr;
         
         try
         {
-            auto reader = bw64::readFile(filePath);
+            reader = bw64::readFile(filePath);
             auto aXml = reader->axmlChunk();
 
             std::stringstream stream;
@@ -139,6 +141,30 @@ extern "C"
             return 1;
         }
         return 0;
+    }
+
+    void getAudioFrame(float* audioBuffer, int startFrame, int bufferSize, int channelNum)
+    {
+        reader->seek(startFrame);
+        std::vector<float> block(bufferSize * reader->channels(), 0.0);
+        reader->read(block.data(), bufferSize);
+  
+        for(int sampleNum = 0; sampleNum < bufferSize; sampleNum++)
+        {
+            int blockPos = channelNum + (sampleNum * reader->channels());
+            *audioBuffer = block[blockPos];
+            audioBuffer++;
+        }
+    }
+    
+    int getSamplerate()
+    {
+        return reader->sampleRate();
+    }
+
+    int getNumberOfFrames()
+    {
+        return reader->numberOfFrames();
     }
 
     AdmAudioBlock getNextBlock()

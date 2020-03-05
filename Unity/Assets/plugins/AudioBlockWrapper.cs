@@ -27,6 +27,15 @@ public class AudioBlockWrapper
     [DllImport(dll, CharSet = CharSet.Ansi)]
     private static extern IntPtr getLatestException();
 
+    [DllImport(dll)]
+    private static extern unsafe void getAudioFrame(float* audioBuffer, int startFrame, int bufferSize, int channelNum);
+
+    [DllImport(dll)]
+    private static extern void getSamplerate();
+
+    [DllImport(dll)]
+    private static extern void getNumberOfFrames();
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct CAudioBlock
     {
