@@ -143,8 +143,10 @@ extern "C"
         return 0;
     }
 
-    void getAudioFrame(float* audioBuffer, int startFrame, int bufferSize, int channelNum)
+    float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
     {
+        float* audioBuffer = new float[bufferSize];
+        float* bufferCounter = audioBuffer;
         reader->seek(startFrame);
         std::vector<float> block(bufferSize * reader->channels(), 0.0);
         reader->read(block.data(), bufferSize);
@@ -152,9 +154,11 @@ extern "C"
         for(int sampleNum = 0; sampleNum < bufferSize; sampleNum++)
         {
             int blockPos = channelNum + (sampleNum * reader->channels());
-            *audioBuffer = block[blockPos];
-            audioBuffer++;
+            *bufferCounter = block[blockPos];
+            bufferCounter++;
         }
+        
+        return audioBuffer;
     }
     
     int getSamplerate()

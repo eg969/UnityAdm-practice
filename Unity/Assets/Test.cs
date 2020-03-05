@@ -40,8 +40,10 @@ public class Test : MonoBehaviour
             {
                 GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
                 audioObjectInstance.AddComponent<AudioSource>();
-                audioObjectInstance.GetComponent<AudioSource>().dopplerLevel = 0;
-                audioObjectInstance.GetComponent<AudioSource>().playOnAwake = true;
+                AudioSource audioSource = audioObjectInstance.GetComponent<AudioSource>();
+                audioSource.dopplerLevel = 0;
+                audioSource.playOnAwake = true;
+                audioSource.clip = channelFormats[cfId].createAudioClip();
                 audioObjectInstance.name = channelFormats[cfId].name;
                 audioObjects.Add(channelFormats[cfId].cfId, audioObjectInstance);
             }

@@ -28,13 +28,13 @@ public class AudioBlockWrapper
     private static extern IntPtr getLatestException();
 
     [DllImport(dll)]
-    private static extern unsafe void getAudioFrame(float* audioBuffer, int startFrame, int bufferSize, int channelNum);
+    private static extern unsafe float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
 
     [DllImport(dll)]
-    private static extern void getSamplerate();
+    private static extern int getSamplerate();
 
     [DllImport(dll)]
-    private static extern void getNumberOfFrames();
+    private static extern int getNumberOfFrames();
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public struct CAudioBlock
@@ -53,6 +53,7 @@ public class AudioBlockWrapper
         public float gain;
         public int jumpPosition;
         public int moveSpherically;
+        public int channelNum;
     };
 
     public class UnityAudioBlock
@@ -76,6 +77,38 @@ public class AudioBlockWrapper
         public int cfId;
         public List<UnityAudioBlock> audioBlocks;
         public int currentAudioBlocksIndex;
+        public int channelNum;
+        private int position;
+
+
+
+        public AudioClip createAudioClip()
+        {
+            int samplerate = getSamplerate();
+            int frameSize = getNumberOfFrames();
+
+            AudioClip clip = AudioClip.Create(name, frameSize, 1, samplerate, true, OnAudioRead, OnAudioSetPosition);
+
+            return clip;
+        }
+
+        unsafe void OnAudioRead(float[] data)
+        {
+            float* bufferCounter = getAudioFrame(position, data.Length, channelNum);
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = *bufferCounter;
+
+                bufferCounter++;
+            }
+        }
+
+        void OnAudioSetPosition(int newPosition)
+        {
+            position = newPosition;
+        }
+
     };
 
     public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
@@ -155,7 +188,8 @@ public class AudioBlockWrapper
                                 name = Encoding.ASCII.GetString(nextBlock.name),
                                 cfId = nextBlock.cfId,
                                 audioBlocks = new List<UnityAudioBlock>(),
-                                currentAudioBlocksIndex = 0
+                                currentAudioBlocksIndex = 0,
+                                channelNum = nextBlock.channelNum
                             }
                         );
                     }
