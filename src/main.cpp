@@ -49,7 +49,7 @@ extern "C"
     std::shared_ptr<adm::Document> parsedDocument;
     std::string latestExceptionMsg{""};
     std::unique_ptr<bw64::Bw64Reader> reader;
-
+    std::vector<bw64::AudioId> audioIds;
     const char* getLatestException(){
         return latestExceptionMsg.c_str();
     }
@@ -59,6 +59,10 @@ extern "C"
     using BlockIndex = int;
 
     std::map<ChannelFormatId,BlockIndex> knownBlocks;
+
+    using ChannelNum = int;
+    using ChannelFormatId = int;
+    std::map<ChannelFormatId,ChannelNum> channelNums;
 
 
     struct holdParameters
@@ -85,12 +89,16 @@ extern "C"
         float gain;
         int jumpPosition;
         int moveSpherically;
+        int channelNum;
     };
+    
+
+    std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
 
     void readAvalibelBlocks()
     {
         auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
-        std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
+        auto trackUids = parsedDocument->getElements<adm::AudioTrackUid>();
 
         for (auto channelFormat: allChannelFormats)
         {
@@ -116,20 +124,44 @@ extern "C"
                 }
             }
         }
+        
+        for(auto trackUid : trackUids)
+        {
+            auto trackFormat = trackUid->getReference<adm::AudioTrackFormat>();
+            auto streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
+            auto channelFormat = streamFormat->getReference<adm::AudioChannelFormat>();
+            
+            int Uid = trackUid->get<adm::AudioTrackUidId>().get<adm::AudioTrackUidIdValue>().get();
+            int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
+            
+            
+            for(auto& audioId : audioIds)
+            {
+               if(Uid == std::stoi(audioId.uid().substr(4)))
+               {
+                   setInMap(channelNums, cfId, (int)audioId.trackIndex());
+               }
+            }
+        }
     }
 
     int readAdm(char filePath[2048])
     {
         blocks.clear();
         knownBlocks.clear();
+        channelNums.clear();
         previousParameters.gain = 1.0;
         previousParameters.distance = 1.0;
         reader = nullptr;
+        parsedDocument = nullptr;
+        notCommonDefs.clear();
         
         try
         {
             reader = bw64::readFile(filePath);
             auto aXml = reader->axmlChunk();
+            auto chnaChunk = reader->chnaChunk();
+            audioIds = chnaChunk->audioIds();
 
             std::stringstream stream;
             aXml->write(stream);
@@ -142,7 +174,7 @@ extern "C"
         }
         return 0;
     }
-
+    
     float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
     {
         float* audioBuffer = new float[bufferSize];
@@ -188,7 +220,8 @@ extern "C"
         currentBlock.gain = 1.0;
         currentBlock.jumpPosition = 0;
         currentBlock.moveSpherically = 0;
-
+        currentBlock.channelNum = -1;
+        
         if(blocks.size() ==  0)
         {
             readAvalibelBlocks();
@@ -198,7 +231,7 @@ extern "C"
         {
             
             std::string name;
-            
+
             if(blocks[0].has<adm::Rtime>())currentBlock.rTime = blocks[0].get<adm::Rtime>().get().count()/1000000000.0;
             if(blocks[0].has<adm::Duration>())currentBlock.duration = blocks[0].get<adm::Duration>().get().count()/1000000000.0;
             
@@ -255,13 +288,20 @@ extern "C"
                     
                     currentBlock.z = z;
                 }
-                
             }
             
             currentBlock.newBlockFlag = true;
             strcpy(currentBlock.name, name.c_str());
             currentBlock.cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
             currentBlock.blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
+            
+            
+            
+            if(getFromMap(channelNums, currentBlock.cfId).has_value())
+            {
+                currentBlock.channelNum = getFromMap(channelNums, currentBlock.cfId).value();
+            }
+            
             blocks.erase(blocks.begin());
         }
         else

@@ -13,11 +13,10 @@ public class Test : MonoBehaviour
     public GameObject objectInstance;
     Thread getBlocksThread;
     Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
-    string fileToRead = "/Users/edgarsg/Desktop/test3.wav";
 
     void Awake()
     {
-        if (readFile(fileToRead))
+        if (readFile("/Users/edgarsg/Desktop/jump2.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -39,11 +38,15 @@ public class Test : MonoBehaviour
             if (!audioObjects.ContainsKey(cfId))
             {
                 GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
-                audioObjectInstance.AddComponent<AudioSource>();
-                AudioSource audioSource = audioObjectInstance.GetComponent<AudioSource>();
-                audioSource.dopplerLevel = 0;
-                audioSource.playOnAwake = true;
-                audioSource.clip = channelFormats[cfId].createAudioClip();
+                if (channelFormats[cfId].channelNum > 0)
+                {
+                    audioObjectInstance.AddComponent<AudioSource>();
+                    AudioSource audioSource = audioObjectInstance.GetComponent<AudioSource>();
+                    audioSource.dopplerLevel = 0;
+                    audioSource.clip = channelFormats[cfId].createAudioClip();
+                    audioSource.playOnAwake = true;
+                    audioSource.Play();
+                }
                 audioObjectInstance.name = channelFormats[cfId].name;
                 audioObjects.Add(channelFormats[cfId].cfId, audioObjectInstance);
             }
@@ -66,7 +69,23 @@ public class Test : MonoBehaviour
                 // This block has started. Has it ended?
                 if(audioBlock.endTime > timeSnapshot)
                 {
-                    float interpolant = (timeSnapshot - audioBlock.startTime) / audioBlock.duration;
+                    float interpolant = 0 ;
+
+                    if (audioBlock.jumpPosition)
+                    {
+                        if (audioBlock.startTime + audioBlock.interpolationLength > timeSnapshot)
+                        {
+                            interpolant = (timeSnapshot - audioBlock.startTime) / audioBlock.interpolationLength;
+                        }
+                        else
+                        {
+                            interpolant = 1f;
+                        }
+                    }
+                    else
+                    {
+                        interpolant = (timeSnapshot - audioBlock.startTime) / audioBlock.duration;
+                    }
 
                     // We are in the block - find the interpolant (progress in to interpolation ramp)
                     Vector3 newPos;

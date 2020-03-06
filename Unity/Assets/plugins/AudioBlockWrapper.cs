@@ -79,9 +79,7 @@ public class AudioBlockWrapper
         public int currentAudioBlocksIndex;
         public int channelNum;
         private int position;
-
-
-
+        
         public AudioClip createAudioClip()
         {
             int samplerate = getSamplerate();
@@ -109,7 +107,7 @@ public class AudioBlockWrapper
             position = newPosition;
         }
 
-    };
+    }
 
     public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
     public static List<int> activeChannelFormats = new List<int>();
