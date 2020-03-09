@@ -78,7 +78,7 @@ public class AudioBlockWrapper
         public List<UnityAudioBlock> audioBlocks;
         public int currentAudioBlocksIndex;
         public int channelNum;
-        private int position;
+        private int position = 0;
         
         public AudioClip createAudioClip()
         {
@@ -99,12 +99,15 @@ public class AudioBlockWrapper
                 data[i] = *bufferCounter;
 
                 bufferCounter++;
+                position++;
             }
+            
         }
 
         void OnAudioSetPosition(int newPosition)
         {
             position = newPosition;
+
         }
 
     }

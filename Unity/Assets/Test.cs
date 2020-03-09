@@ -16,7 +16,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/jump2.wav"))
+        if (readFile("/Users/edgarsg/Desktop/test5.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -38,12 +38,13 @@ public class Test : MonoBehaviour
             if (!audioObjects.ContainsKey(cfId))
             {
                 GameObject audioObjectInstance = Instantiate(objectInstance) as GameObject;
-                if (channelFormats[cfId].channelNum > 0)
+                if (channelFormats[cfId].channelNum >= 0)
                 {
                     audioObjectInstance.AddComponent<AudioSource>();
                     AudioSource audioSource = audioObjectInstance.GetComponent<AudioSource>();
                     audioSource.dopplerLevel = 0;
                     audioSource.clip = channelFormats[cfId].createAudioClip();
+                    audioSource.loop = false;
                     audioSource.playOnAwake = true;
                     audioSource.Play();
                 }

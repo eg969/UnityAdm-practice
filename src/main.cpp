@@ -54,6 +54,7 @@ extern "C"
         return latestExceptionMsg.c_str();
     }
 
+    //float* audioBuffer;
     std::vector<adm::AudioBlockFormatObjects> blocks;
     using ChannelFormatId = int;
     using BlockIndex = int;
@@ -98,8 +99,6 @@ extern "C"
     void readAvalibelBlocks()
     {
         auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
-        auto trackUids = parsedDocument->getElements<adm::AudioTrackUid>();
-
         for (auto channelFormat: allChannelFormats)
         {
             if(!isCommonDefinition(channelFormat.get()))
@@ -125,24 +124,29 @@ extern "C"
             }
         }
         
-        for(auto trackUid : trackUids)
+        auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
+        int tfIdVal;
+        for(auto trackFormat : trackFormats)
         {
-            auto trackFormat = trackUid->getReference<adm::AudioTrackFormat>();
-            auto streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
-            auto channelFormat = streamFormat->getReference<adm::AudioChannelFormat>();
-            
-            int Uid = trackUid->get<adm::AudioTrackUidId>().get<adm::AudioTrackUidIdValue>().get();
-            int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
-            
-            
+            tfIdVal = trackFormat->get<adm::AudioTrackFormatId>().get<adm::AudioTrackFormatIdValue>().get();
             for(auto& audioId : audioIds)
             {
-               if(Uid == std::stoi(audioId.uid().substr(4)))
-               {
-                   setInMap(channelNums, cfId, (int)audioId.trackIndex());
-               }
+                std::string tfIdString = audioId.trackRef().substr(7,4);
+                int tfIdInt = std::stoi(tfIdString, nullptr, 16);
+                
+                if(tfIdVal == tfIdInt)
+                {
+                    auto streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
+                    auto channelFormat = streamFormat->getReference<adm::AudioChannelFormat>();
+
+                    int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
+                    
+                    setInMap(channelNums, cfId, (int)audioId.trackIndex());
+                }
+               
             }
         }
+        
     }
 
     int readAdm(char filePath[2048])
@@ -174,10 +178,12 @@ extern "C"
         }
         return 0;
     }
-    
+
+    float* audioBuffer = nullptr;
+
     float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
     {
-        float* audioBuffer = new float[bufferSize];
+        if(audioBuffer == nullptr)audioBuffer = new float[bufferSize];
         float* bufferCounter = audioBuffer;
         reader->seek(startFrame);
         std::vector<float> block(bufferSize * reader->channels(), 0.0);
@@ -273,20 +279,20 @@ extern "C"
                 {
                     int x = position.get<adm::Distance>().get() * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
 
-                    currentBlock.x = x;
+                    currentBlock.x = 10*x;
                 }
                 if(position.has<adm::Elevation>())
                 {
                     
                     int y = position.get<adm::Distance>().get() * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
 
-                    currentBlock.y = y;
+                    currentBlock.y = 10*y;
                 }
                 if(position.has<adm::Distance>())
                 {
                     int z = position.get<adm::Distance>().get() * sin(TO_RAD * position.get<adm::Elevation>().get());
                     
-                    currentBlock.z = z;
+                    currentBlock.z = 10*z;
                 }
             }
             
