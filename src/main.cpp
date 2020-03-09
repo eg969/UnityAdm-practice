@@ -141,7 +141,7 @@ extern "C"
 
                     int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
                     
-                    setInMap(channelNums, cfId, (int)audioId.trackIndex());
+                    setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
                 }
                
             }
