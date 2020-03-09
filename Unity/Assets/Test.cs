@@ -16,7 +16,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/test5.wav"))
+        if (readFile("/Users/edgarsg/Desktop/gain3.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
@@ -44,6 +44,7 @@ public class Test : MonoBehaviour
                     AudioSource audioSource = audioObjectInstance.GetComponent<AudioSource>();
                     audioSource.dopplerLevel = 0;
                     audioSource.clip = channelFormats[cfId].createAudioClip();
+                    audioSource.spatialBlend = 1.0f;
                     audioSource.loop = false;
                     audioSource.playOnAwake = true;
                     audioSource.Play();
@@ -99,12 +100,21 @@ public class Test : MonoBehaviour
                         newPos = Vector3.Lerp(audioBlock.startPos, audioBlock.endPos, interpolant);
                     }
                     audioObjects[cfId].transform.position = newPos;
+
+                    if (audioObjects[cfId].GetComponent<AudioSource>())
+                    {
+                        float gainDiff = audioBlock.endGain - audioBlock.startGain;
+                        float currenGain = audioBlock.startGain;
+                        float newGain = currenGain + interpolant * gainDiff;
+                        audioObjects[cfId].GetComponent<AudioSource>().volume = newGain;
+                    }
                     break;
                 }
                 else
                 {
                     // It has ended. Make sure we set the position to it's final resting place.
                     audioObjects[cfId].transform.position = audioBlock.endPos;
+                    if (audioObjects[cfId].GetComponent<AudioSource>())audioObjects[cfId].GetComponent<AudioSource>().volume = audioBlock.endGain;
                     // Now increment currentAudioBlocksIndex and re-evaluate the while - we might have already started the next block.
                     channelFormats[cfId].currentAudioBlocksIndex++;
                 }

@@ -65,7 +65,8 @@ public class AudioBlockWrapper
         public float interpolationLength;
         public Vector3 startPos;
         public Vector3 endPos;
-        public float gain;
+        public float startGain;
+        public float endGain;
         public bool jumpPosition;
         public bool moveSpherically;
 
@@ -174,7 +175,8 @@ public class AudioBlockWrapper
                     // TODO: explain why x<-->z 
                     startPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y), // Will be overwritten if we find a previous block, otherwise (if first block) this is correct
                     endPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y),
-                    gain = nextBlock.gain,
+                    startGain = nextBlock.gain,
+                    endGain = nextBlock.gain,
                     jumpPosition = jumpPos,
                     moveSpherically = moveSpher
                 };
@@ -208,6 +210,7 @@ public class AudioBlockWrapper
                     if (newBlock.blockId > previousBlock.blockId && newBlock.startTime >= previousBlock.endTime)
                     {
                         newBlock.startPos.Set(previousBlock.endPos.x, previousBlock.endPos.y, previousBlock.endPos.z);
+                        newBlock.startGain = previousBlock.endGain;
                     }
 
                 }

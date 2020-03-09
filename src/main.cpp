@@ -136,12 +136,18 @@ extern "C"
                 
                 if(tfIdVal == tfIdInt)
                 {
-                    auto streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
-                    auto channelFormat = streamFormat->getReference<adm::AudioChannelFormat>();
-
-                    int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
+                    std::shared_ptr<adm::AudioStreamFormat> streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
                     
-                    setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
+                    if(streamFormat)
+                    {
+                        std::shared_ptr<adm::AudioChannelFormat> channelFormat = streamFormat->getReference<adm::AudioChannelFormat>();
+                        
+                        if(channelFormat)
+                        {
+                            int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
+                            setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
+                        }
+                    }
                 }
                
             }
@@ -275,24 +281,25 @@ extern "C"
             {
                 currentBlock.moveSpherically = 1;
                 auto position = blocks[0].get<adm::SphericalPosition>();
+                auto distance = position.get<adm::Distance>().get();
                 if(position.has<adm::Azimuth>())
                 {
-                    int x = position.get<adm::Distance>().get() * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
+                    float x = distance * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
 
-                    currentBlock.x = 10*x;
+                    currentBlock.x = x;
                 }
                 if(position.has<adm::Elevation>())
                 {
                     
-                    int y = position.get<adm::Distance>().get() * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
+                    float y = distance * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
 
-                    currentBlock.y = 10*y;
+                    currentBlock.y = y;
                 }
                 if(position.has<adm::Distance>())
                 {
-                    int z = position.get<adm::Distance>().get() * sin(TO_RAD * position.get<adm::Elevation>().get());
+                    float z = distance * sin(TO_RAD * position.get<adm::Elevation>().get());
                     
-                    currentBlock.z = 10*z;
+                    currentBlock.z = z;
                 }
             }
             
