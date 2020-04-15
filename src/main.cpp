@@ -58,12 +58,12 @@ extern "C"
     std::vector<adm::AudioBlockFormatObjects> blocks;
     using ChannelFormatId = int;
     using BlockIndex = int;
+    using ChannelNum = int;
+    using TypeDef = int;
 
     std::map<ChannelFormatId,BlockIndex> knownBlocks;
-
-    using ChannelNum = int;
-    using ChannelFormatId = int;
     std::map<ChannelFormatId,ChannelNum> channelNums;
+    std::map<ChannelFormatId,TypeDef> typeDefs;
 
 
     struct holdParameters
@@ -81,6 +81,7 @@ extern "C"
         char name[100];
         int cfId;
         int blockId;
+        int typeDef;
         float rTime;
         float duration;
         float interpolationLength;
@@ -98,7 +99,7 @@ extern "C"
 
     void readAvalibelBlocks()
     {
-        auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
+        /*auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
         for (auto channelFormat: allChannelFormats)
         {
             if(!isCommonDefinition(channelFormat.get()))
@@ -122,7 +123,7 @@ extern "C"
                     setInMap(knownBlocks, cfId, blockId);
                 }
             }
-        }
+        }*/
         
         auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
         int tfIdVal;
@@ -146,10 +147,28 @@ extern "C"
                         {
                             int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
                             setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
+                            
+                            int typeDef = channelFormat->get<adm::TypeDescriptor>().get();
+                            setInMap(typeDefs, cfId, typeDef);
+                            ///////////////////////////////////////////////
+                            auto newBlocks = channelFormat->getElements<adm::AudioBlockFormatObjects>();
+
+                            for(auto newBlock : newBlocks)
+                            {
+                                int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+                                int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
+
+                                if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
+                                {
+                                    blocks.push_back(newBlock);
+                                    setInMap(knownBlocks, cfId, blockId);
+                                }
+                            }
+                            
+                             notCommonDefs.push_back(channelFormat);
                         }
                     }
                 }
-               
             }
         }
         
@@ -223,6 +242,7 @@ extern "C"
         strcpy(currentBlock.name, std::string("").c_str());
         currentBlock.cfId = 0;
         currentBlock.blockId = 0;
+        currentBlock.typeDef = -1;
         currentBlock.rTime = 0.0;
         currentBlock.duration = 0.0;
         currentBlock.interpolationLength = 0.0;
@@ -313,6 +333,11 @@ extern "C"
             if(getFromMap(channelNums, currentBlock.cfId).has_value())
             {
                 currentBlock.channelNum = getFromMap(channelNums, currentBlock.cfId).value();
+            }
+            
+            if(getFromMap(typeDefs, currentBlock.cfId).has_value())
+            {
+                currentBlock.typeDef = getFromMap(typeDefs, currentBlock.cfId).value();
             }
             
             blocks.erase(blocks.begin());

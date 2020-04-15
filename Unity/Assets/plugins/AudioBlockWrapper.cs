@@ -44,6 +44,7 @@ public class AudioBlockWrapper
         public byte[] name;
         public int cfId;
         public int blockId;
+        public int typeDef;
         public float rTime;
         public float duration;
         public float interpolationLength;

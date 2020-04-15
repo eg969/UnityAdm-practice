@@ -16,7 +16,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        if (readFile("/Users/edgarsg/Desktop/gain3.wav"))
+        if (readFile("/Users/edgarsg/Desktop/panned_noise_adm.wav"))
         {
             getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
