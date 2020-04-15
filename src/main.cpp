@@ -11,6 +11,8 @@
 
 #define TO_RAD 3.14/180
 
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
 bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
@@ -55,7 +57,14 @@ extern "C"
     }
 
     //float* audioBuffer;
-    std::vector<adm::AudioBlockFormatObjects> blocks;
+    using AdmBlockVariant = std::variant<
+        adm::AudioBlockFormatObjects,
+        adm::AudioBlockFormatDirectSpeakers,
+        adm::AudioBlockFormatHoa,
+        adm::AudioBlockFormatBinaural
+    >;
+
+    std::vector<AdmBlockVariant> blocks;
     using ChannelFormatId = int;
     using BlockIndex = int;
     using ChannelNum = int;
@@ -99,31 +108,6 @@ extern "C"
 
     void readAvalibelBlocks()
     {
-        /*auto allChannelFormats = parsedDocument->getElements<adm::AudioChannelFormat>();
-        for (auto channelFormat: allChannelFormats)
-        {
-            if(!isCommonDefinition(channelFormat.get()))
-            {
-                notCommonDefs.push_back(channelFormat);
-            }
-        }
-
-        for (auto channelFormat : notCommonDefs)
-        {
-            auto newBlocks = channelFormat->getElements<adm::AudioBlockFormatObjects>();
-
-            for(auto newBlock : newBlocks)
-            {
-                int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
-                int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
-
-                if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
-                {
-                    blocks.push_back(newBlock);
-                    setInMap(knownBlocks, cfId, blockId);
-                }
-            }
-        }*/
         
         auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
         int tfIdVal;
@@ -150,7 +134,7 @@ extern "C"
                             
                             int typeDef = channelFormat->get<adm::TypeDescriptor>().get();
                             setInMap(typeDefs, cfId, typeDef);
-                            ///////////////////////////////////////////////
+                            
                             auto newBlocks = channelFormat->getElements<adm::AudioBlockFormatObjects>();
 
                             for(auto newBlock : newBlocks)
@@ -234,7 +218,7 @@ extern "C"
         return reader->numberOfFrames();
     }
 
-    AdmAudioBlock getNextBlock()
+    AdmAudioBlock getObjectBlock(adm::AudioBlockFormatObjects objectBlock)
     {
         AdmAudioBlock currentBlock;
         
@@ -254,6 +238,161 @@ extern "C"
         currentBlock.moveSpherically = 0;
         currentBlock.channelNum = -1;
         
+       
+        std::string name;
+
+        if(objectBlock.has<adm::Rtime>())currentBlock.rTime =objectBlock.get<adm::Rtime>().get().count()/1000000000.0;
+        if(objectBlock.has<adm::Duration>())currentBlock.duration = objectBlock.get<adm::Duration>().get().count()/1000000000.0;
+        
+        if(objectBlock.has<adm::JumpPosition>())
+        {
+            if(objectBlock.get<adm::JumpPosition>().has<adm::JumpPositionFlag>())
+            {
+                if(objectBlock.get<adm::JumpPosition>().get<adm::JumpPositionFlag>().get())
+                {
+                    currentBlock.jumpPosition = 1;
+                }
+                else
+                {
+                    currentBlock.jumpPosition = 0;
+                }
+            }
+            
+            if((objectBlock.get<adm::JumpPosition>().has<adm::InterpolationLength>()))currentBlock.interpolationLength = objectBlock.get<adm::JumpPosition>().get<adm::InterpolationLength>().get().count()/1000000000.0;
+        }
+        
+        if(objectBlock.has<adm::Gain>())
+        {
+            currentBlock.gain = objectBlock.get<adm::Gain>().get();
+        }
+
+        if(objectBlock.has<adm::CartesianPosition>())
+        {
+            currentBlock.moveSpherically = 0;
+            auto position = objectBlock.get<adm::CartesianPosition>();
+            if(position.has<adm::X>())currentBlock.x = position.get<adm::X>().get();;
+            if(position.has<adm::Y>())currentBlock.y = position.get<adm::Y>().get();;
+            if(position.has<adm::Z>())currentBlock.z = position.get<adm::Z>().get();;
+        }
+        else if(objectBlock.has<adm::SphericalPosition>())
+        {
+            currentBlock.moveSpherically = 1;
+            auto position = objectBlock.get<adm::SphericalPosition>();
+            auto distance = position.get<adm::Distance>().get();
+            if(position.has<adm::Azimuth>())
+            {
+                float x = distance * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
+
+                currentBlock.x = x;
+            }
+            if(position.has<adm::Elevation>())
+            {
+                
+                float y = distance * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
+
+                currentBlock.y = y;
+            }
+            if(position.has<adm::Distance>())
+            {
+                float z = distance * sin(TO_RAD * position.get<adm::Elevation>().get());
+                
+                currentBlock.z = z;
+            }
+        }
+        
+        currentBlock.newBlockFlag = true;
+        strcpy(currentBlock.name, name.c_str());
+        currentBlock.cfId = objectBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+        currentBlock.blockId = objectBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
+        
+        
+        
+        if(getFromMap(channelNums, currentBlock.cfId).has_value())
+        {
+            currentBlock.channelNum = getFromMap(channelNums, currentBlock.cfId).value();
+        }
+        
+        if(getFromMap(typeDefs, currentBlock.cfId).has_value())
+        {
+            currentBlock.typeDef = getFromMap(typeDefs, currentBlock.cfId).value();
+        }
+        
+        return currentBlock;
+    }
+    
+    AdmAudioBlock getSpeakerBlock(adm::AudioBlockFormatDirectSpeakers speakerBlock)
+    {
+        AdmAudioBlock currentBlock;
+        
+        currentBlock.newBlockFlag = false;
+        strcpy(currentBlock.name, std::string("").c_str());
+        currentBlock.cfId = 0;
+        currentBlock.blockId = 0;
+        currentBlock.typeDef = -1;
+        currentBlock.rTime = 0.0;
+        currentBlock.duration = 0.0;
+        currentBlock.interpolationLength = 0.0;
+        currentBlock.x = 0.0;
+        currentBlock.y = 0.0;
+        currentBlock.z = 0.0;
+        currentBlock.gain = 1.0;
+        currentBlock.jumpPosition = 0;
+        currentBlock.moveSpherically = 0;
+        currentBlock.channelNum = -1;
+        
+        return currentBlock;
+    }
+    
+    AdmAudioBlock getHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
+    {
+        AdmAudioBlock currentBlock;
+        
+        currentBlock.newBlockFlag = false;
+        strcpy(currentBlock.name, std::string("").c_str());
+        currentBlock.cfId = 0;
+        currentBlock.blockId = 0;
+        currentBlock.typeDef = -1;
+        currentBlock.rTime = 0.0;
+        currentBlock.duration = 0.0;
+        currentBlock.interpolationLength = 0.0;
+        currentBlock.x = 0.0;
+        currentBlock.y = 0.0;
+        currentBlock.z = 0.0;
+        currentBlock.gain = 1.0;
+        currentBlock.jumpPosition = 0;
+        currentBlock.moveSpherically = 0;
+        currentBlock.channelNum = -1;
+        
+        return currentBlock;
+    }
+    
+    AdmAudioBlock getBinauralBlock(adm::AudioBlockFormatBinaural binauralBlock)
+    {
+        AdmAudioBlock currentBlock;
+        
+        currentBlock.newBlockFlag = false;
+        strcpy(currentBlock.name, std::string("").c_str());
+        currentBlock.cfId = 0;
+        currentBlock.blockId = 0;
+        currentBlock.typeDef = -1;
+        currentBlock.rTime = 0.0;
+        currentBlock.duration = 0.0;
+        currentBlock.interpolationLength = 0.0;
+        currentBlock.x = 0.0;
+        currentBlock.y = 0.0;
+        currentBlock.z = 0.0;
+        currentBlock.gain = 1.0;
+        currentBlock.jumpPosition = 0;
+        currentBlock.moveSpherically = 0;
+        currentBlock.channelNum = -1;
+        
+        return currentBlock;
+    }
+    
+    AdmAudioBlock getNextBlock()
+    {
+        AdmAudioBlock currentBlock;
+        
         if(blocks.size() ==  0)
         {
             readAvalibelBlocks();
@@ -261,85 +400,15 @@ extern "C"
         
         if(blocks.size() !=  0)
         {
-            
-            std::string name;
+            std::visit(overload
+            {
+                [&currentBlock](adm::AudioBlockFormatObjects audioBlock){currentBlock = getObjectBlock(audioBlock);},
+                [&currentBlock](adm::AudioBlockFormatDirectSpeakers audioBlock){currentBlock = getSpeakerBlock(audioBlock);},
+                [&currentBlock](adm::AudioBlockFormatHoa audioBlock){currentBlock = getHoaBlock(audioBlock);},
+                [&currentBlock](adm::AudioBlockFormatBinaural audioBlock){currentBlock = getBinauralBlock(audioBlock);},
+                [](auto){}
+            },blocks[0]);
 
-            if(blocks[0].has<adm::Rtime>())currentBlock.rTime = blocks[0].get<adm::Rtime>().get().count()/1000000000.0;
-            if(blocks[0].has<adm::Duration>())currentBlock.duration = blocks[0].get<adm::Duration>().get().count()/1000000000.0;
-            
-            if(blocks[0].has<adm::JumpPosition>())
-            {
-                if(blocks[0].get<adm::JumpPosition>().has<adm::JumpPositionFlag>())
-                {
-                    if(blocks[0].get<adm::JumpPosition>().get<adm::JumpPositionFlag>().get())
-                    {
-                        currentBlock.jumpPosition = 1;
-                    }
-                    else
-                    {
-                        currentBlock.jumpPosition = 0;
-                    }
-                }
-                
-                if((blocks[0].get<adm::JumpPosition>().has<adm::InterpolationLength>()))currentBlock.interpolationLength = blocks[0].get<adm::JumpPosition>().get<adm::InterpolationLength>().get().count()/1000000000.0;
-            }
-            
-            if(blocks[0].has<adm::Gain>())
-            {
-                currentBlock.gain = blocks[0].get<adm::Gain>().get();
-            }
-
-            if(blocks[0].has<adm::CartesianPosition>())
-            {
-                currentBlock.moveSpherically = 0;
-                auto position = blocks[0].get<adm::CartesianPosition>();
-                if(position.has<adm::X>())currentBlock.x = position.get<adm::X>().get();;
-                if(position.has<adm::Y>())currentBlock.y = position.get<adm::Y>().get();;
-                if(position.has<adm::Z>())currentBlock.z = position.get<adm::Z>().get();;
-            }
-            else if(blocks[0].has<adm::SphericalPosition>())
-            {
-                currentBlock.moveSpherically = 1;
-                auto position = blocks[0].get<adm::SphericalPosition>();
-                auto distance = position.get<adm::Distance>().get();
-                if(position.has<adm::Azimuth>())
-                {
-                    float x = distance * sin(-TO_RAD * position.get<adm::Azimuth>().get()) * cos(TO_RAD * position.get<adm::Elevation>().get());
-
-                    currentBlock.x = x;
-                }
-                if(position.has<adm::Elevation>())
-                {
-                    
-                    float y = distance * cos(TO_RAD * position.get<adm::Elevation>().get()) * cos(TO_RAD * position.get<adm::Azimuth>().get());
-
-                    currentBlock.y = y;
-                }
-                if(position.has<adm::Distance>())
-                {
-                    float z = distance * sin(TO_RAD * position.get<adm::Elevation>().get());
-                    
-                    currentBlock.z = z;
-                }
-            }
-            
-            currentBlock.newBlockFlag = true;
-            strcpy(currentBlock.name, name.c_str());
-            currentBlock.cfId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
-            currentBlock.blockId = blocks[0].get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
-            
-            
-            
-            if(getFromMap(channelNums, currentBlock.cfId).has_value())
-            {
-                currentBlock.channelNum = getFromMap(channelNums, currentBlock.cfId).value();
-            }
-            
-            if(getFromMap(typeDefs, currentBlock.cfId).has_value())
-            {
-                currentBlock.typeDef = getFromMap(typeDefs, currentBlock.cfId).value();
-            }
-            
             blocks.erase(blocks.begin());
         }
         else
