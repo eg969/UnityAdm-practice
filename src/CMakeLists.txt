@@ -4,6 +4,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCE_FILES
         main.cpp
+        AudioBlockObjects.h
+        Interface.h
+        AdmReader.h
+        AudioBlockBinaural.h
+        AudioBlockDirectSpeakers.h
+        AudioBlockHoa.h
+        AudioBlockObjects.cpp
+        Interface.cpp
+        AdmReader.cpp
+        AudioBlockBinaural.cpp
+        AudioBlockDirectSpeakers.cpp
+        AudioBlockHoa.cpp
     )
 
 if(WIN32)
