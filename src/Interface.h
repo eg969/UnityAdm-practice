@@ -8,9 +8,17 @@
 #include "AudioBlockObjects.h"
 
 #pragma once
-AdmAudioBlock getNextBlock();
-float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
-int getSamplerate();
-int getNumberOfFrames();
+
+namespace Dll
+    {
+        AudioObjectBlock getNextObjectBlock();
+        AudioHoaBlock getNextHoaBlock();
+        AudioSpeakerBlock getNextSpeakerBlock();
+        AudioBinauralBlock getNextBinauralBlock();
+
+        float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
+        int getSamplerate();
+        int getNumberOfFrames();
+    }
 
 float* audioBuffer = nullptr;

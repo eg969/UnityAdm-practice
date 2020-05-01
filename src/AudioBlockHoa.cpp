@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include "AudioBlockHoa.h"
 
-AdmAudioBlock getHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
+AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
 {
-    AdmAudioBlock currentBlock;
+    AudioHoaBlock currentBlock;
     
     currentBlock.newBlockFlag = false;
     strcpy(currentBlock.name, std::string("").c_str());
@@ -19,13 +19,6 @@ AdmAudioBlock getHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     currentBlock.typeDef = -1;
     currentBlock.rTime = 0.0;
     currentBlock.duration = 0.0;
-    currentBlock.interpolationLength = 0.0;
-    currentBlock.x = 0.0;
-    currentBlock.y = 0.0;
-    currentBlock.z = 0.0;
-    currentBlock.gain = 1.0;
-    currentBlock.jumpPosition = 0;
-    currentBlock.moveSpherically = 0;
     currentBlock.channelNum = -1;
     
     currentBlock.cfId = hoaBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();

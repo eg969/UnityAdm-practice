@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include "AudioBlockDirectSpeakers.h"
 
-AdmAudioBlock getSpeakerBlock(adm::AudioBlockFormatDirectSpeakers speakerBlock)
+AudioSpeakerBlock loadSpeakerBlock(adm::AudioBlockFormatDirectSpeakers speakerBlock)
 {
-    AdmAudioBlock currentBlock;
+    AudioSpeakerBlock currentBlock;
     
     currentBlock.newBlockFlag = false;
     strcpy(currentBlock.name, std::string("").c_str());
@@ -19,13 +19,6 @@ AdmAudioBlock getSpeakerBlock(adm::AudioBlockFormatDirectSpeakers speakerBlock)
     currentBlock.typeDef = -1;
     currentBlock.rTime = 0.0;
     currentBlock.duration = 0.0;
-    currentBlock.interpolationLength = 0.0;
-    currentBlock.x = 0.0;
-    currentBlock.y = 0.0;
-    currentBlock.z = 0.0;
-    currentBlock.gain = 1.0;
-    currentBlock.jumpPosition = 0;
-    currentBlock.moveSpherically = 0;
     currentBlock.channelNum = -1;
     
     

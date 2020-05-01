@@ -11,7 +11,7 @@
 
 
 //Interface
-AdmAudioBlock getNextBlock()
+/*AdmAudioBlock getNextBlock()
 {
     AdmAudioBlock currentBlock;
     
@@ -32,6 +32,95 @@ AdmAudioBlock getNextBlock()
         },blocks[0]);
 
         blocks.erase(blocks.begin());
+    }
+    else
+    {
+        currentBlock.newBlockFlag = false;
+    }
+    
+    return currentBlock;
+}*/
+
+
+AudioObjectBlock getNextObjectBlock()
+{
+    AudioObjectBlock currentBlock;
+    
+    if(objectBlocks.size() ==  0)
+    {
+        readAvalibelBlocks();
+    }
+    
+    if(objectBlocks.size() !=  0)
+    {
+        currentBlock = loadObjectBlock(objectBlocks[0]);
+        objectBlocks.erase(objectBlocks.begin());
+    }
+    else
+    {
+        currentBlock.newBlockFlag = false;
+    }
+    
+    return currentBlock;
+}
+
+AudioHoaBlock getNextHoaBlock()
+{
+    AudioHoaBlock currentBlock;
+    
+    if(hoaBlocks.size() ==  0)
+    {
+        readAvalibelBlocks();
+    }
+    
+    if(hoaBlocks.size() !=  0)
+    {
+        currentBlock = loadHoaBlock(hoaBlocks[0]);
+        hoaBlocks.erase(hoaBlocks.begin());
+    }
+    else
+    {
+        currentBlock.newBlockFlag = false;
+    }
+    
+    return currentBlock;
+}
+
+AudioSpeakerBlock getNextSpeakerBlock()
+{
+    AudioSpeakerBlock currentBlock;
+    
+    if(speakerBlocks.size() ==  0)
+    {
+        readAvalibelBlocks();
+    }
+    
+    if(hoaBlocks.size() !=  0)
+    {
+        currentBlock = loadSpeakerBlock(speakerBlocks[0]);
+        speakerBlocks.erase(speakerBlocks.begin());
+    }
+    else
+    {
+        currentBlock.newBlockFlag = false;
+    }
+    
+    return currentBlock;
+}
+
+AudioBinauralBlock getNextBinauralBlock()
+{
+    AudioBinauralBlock currentBlock;
+    
+    if(binauralBlocks.size() ==  0)
+    {
+        readAvalibelBlocks();
+    }
+    
+    if(binauralBlocks.size() !=  0)
+    {
+        currentBlock = loadBinauralBlock(binauralBlocks[0]);
+        binauralBlocks.erase(binauralBlocks.begin());
     }
     else
     {

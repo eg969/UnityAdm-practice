@@ -23,9 +23,13 @@ template<typename Key, typename Value>
 std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key);
 template<typename Key, typename Value>
 void setInMap(std::map<Key, Value> &targetMap, Key key, Value value);
-const char* getLatestException();
 void readAvalibelBlocks();
-int readAdm(char filePath[2048]);
+
+namespace Dll
+{
+    const char* getLatestException();
+    int readAdm(char filePath[2048]);
+}
 
 std::shared_ptr<adm::Document> parsedDocument;
 std::string latestExceptionMsg{""};

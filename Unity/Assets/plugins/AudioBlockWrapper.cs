@@ -24,7 +24,16 @@ public class AudioBlockWrapper
     public static extern int readAdm(byte[] filePath);
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern CAudioBlock getNextObjectBlock();
+
+    /*[DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern CAudioBlock getNextBlock();
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern CAudioBlock getNextBlock();
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern CAudioBlock getNextBlock();*/
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern IntPtr getLatestException();

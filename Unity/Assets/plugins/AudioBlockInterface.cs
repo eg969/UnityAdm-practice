@@ -72,7 +72,7 @@ public class AudioBlockInterface
     {
         while (true)
         {
-            CAudioBlock nextBlock = getNextBlock();
+            CAudioBlock nextBlock = getNextObjectBlock();
 
             getAudioBlockObjects(nextBlock);
             Thread.Sleep(20);
