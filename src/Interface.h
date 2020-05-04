@@ -10,15 +10,18 @@
 #pragma once
 
 namespace Dll
-    {
-        AudioObjectBlock getNextObjectBlock();
-        AudioHoaBlock getNextHoaBlock();
-        AudioSpeakerBlock getNextSpeakerBlock();
-        AudioBinauralBlock getNextBinauralBlock();
+{
+    AudioObjectBlock getNextObjectBlock();
+    AudioHoaBlock getNextHoaBlock();
+    AudioSpeakerBlock getNextSpeakerBlock();
+    AudioBinauralBlock getNextBinauralBlock();
+    
+    //float* audioBuffer = nullptr;
 
-        float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
-        int getSamplerate();
-        int getNumberOfFrames();
-    }
+    float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
+    int getSamplerate();
+    int getNumberOfFrames();
 
-float* audioBuffer = nullptr;
+}
+
+

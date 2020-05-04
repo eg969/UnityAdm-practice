@@ -1,9 +1,8 @@
 
 //  AudioBlockObjects.h
 
-#include "AdmReader.h"
 #pragma once
-
+#include "AdmReader.h"
 struct AudioObjectBlock
 {
     bool newBlockFlag;

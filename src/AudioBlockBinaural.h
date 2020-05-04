@@ -1,9 +1,9 @@
 //
 //  AudioBlockBinaural.h
 
-#include "AdmReader.h"
-#pragma once
 
+#pragma once
+#include "AdmReader.h"
 struct AudioBinauralBlock
 {
     bool newBlockFlag;

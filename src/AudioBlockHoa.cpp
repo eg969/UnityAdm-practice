@@ -24,14 +24,17 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     currentBlock.cfId = hoaBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
     currentBlock.blockId = hoaBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
     
-    if(getFromMap(channelNums, currentBlock.cfId).has_value())
+    auto channelNums = AdmReaderSingleton::getInstance()->channelNums;
+    auto typeDefs = AdmReaderSingleton::getInstance()->typeDefs;
+    
+    if(AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).has_value())
     {
-        currentBlock.channelNum = getFromMap(channelNums, currentBlock.cfId).value();
+        currentBlock.channelNum = AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).value();
     }
     
-    if(getFromMap(typeDefs, currentBlock.cfId).has_value())
+    if(AdmReaderSingleton::getInstance()->getFromMap(typeDefs, currentBlock.cfId).has_value())
     {
-        currentBlock.typeDef = getFromMap(typeDefs, currentBlock.cfId).value();
+        currentBlock.typeDef = AdmReaderSingleton::getInstance()->getFromMap(typeDefs, currentBlock.cfId).value();
     }
     
     return currentBlock;

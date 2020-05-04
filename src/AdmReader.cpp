@@ -11,7 +11,20 @@
 #include "AdmReader.h"
 
 
-bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
+
+
+AdmReader::AdmReader()
+{
+    
+}
+
+AdmReader::~AdmReader()
+{
+    
+}
+
+
+bool AdmReader::isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
     auto idString = adm::formatId(channelFormat->get<adm::AudioChannelFormatId>());
     bool isCommon{false};
@@ -27,13 +40,13 @@ bool isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 }
 
 template<typename Key, typename Value>
-std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key){
+std::optional<Value> AdmReader::getFromMap(std::map<Key, Value> &targetMap, Key key){
     auto it = targetMap.find(key);
     if(it == targetMap.end()) return std::optional<Value>();
     return std::optional<Value>(it->second);
 }
 template<typename Key, typename Value>
-void setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
+void AdmReader::setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
     auto it = targetMap.find(key);
     if(it == targetMap.end()){
         targetMap.insert(std::make_pair(key, value));
@@ -43,7 +56,7 @@ void setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
 }
 
 //AdmReader
-void readAvalibelBlocks()
+void AdmReader::readAvalibelBlocks()
 {
     auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
     int tfIdVal;
@@ -78,7 +91,7 @@ void readAvalibelBlocks()
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
                             {
-                                objectBlocks.push_back(newBlock);
+                                objectBlocks->push_back(newBlock);
                                 setInMap(knownBlocks, cfId, blockId);
                             }
                         }
@@ -90,7 +103,7 @@ void readAvalibelBlocks()
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
                             {
-                                speakerBlocks.push_back(newBlock);
+                                speakerBlocks->push_back(newBlock);
                                 setInMap(knownBlocks, cfId, blockId);
                             }
                         }
@@ -102,7 +115,7 @@ void readAvalibelBlocks()
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
                             {
-                                hoaBlocks.push_back(newBlock);
+                                hoaBlocks->push_back(newBlock);
                                 setInMap(knownBlocks, cfId, blockId);
                             }
                         }
@@ -114,7 +127,7 @@ void readAvalibelBlocks()
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
                             {
-                                binauralBlocks.push_back(newBlock);
+                                binauralBlocks->push_back(newBlock);
                                 setInMap(knownBlocks, cfId, blockId);
                             }
                         }
@@ -126,13 +139,14 @@ void readAvalibelBlocks()
         }
     }
 }
+
 //AdmReader
-int readAdm(char filePath[2048])
+int AdmReader::readAdm(char filePath[2048])
 {
-    objectBlocks.clear();
-    speakerBlocks.clear();
-    hoaBlocks.clear();
-    binauralBlocks.clear();
+    objectBlocks->clear();
+    speakerBlocks->clear();
+    hoaBlocks->clear();
+    binauralBlocks->clear();
     knownBlocks.clear();
     channelNums.clear();
     previousParameters.gain = 1.0;
@@ -160,3 +174,32 @@ int readAdm(char filePath[2048])
         return 0;
 }
 
+const char* AdmReader::getLatestException()
+{
+    return latestExceptionMsg.c_str();
+}
+
+AdmReaderSingleton::AdmReaderSingleton() //: singleton { getInstance() }
+{
+    
+}
+AdmReaderSingleton::~AdmReaderSingleton()
+{
+    
+}
+
+std::shared_ptr<AdmReader> AdmReaderSingleton::getInstance()
+{
+    
+    if(std::shared_ptr<AdmReader> singletonInst = singletonStatic.lock())
+    {
+        return singletonInst;
+    }
+    else
+    {
+        singletonInst = std::make_shared<AdmReader>();
+        singletonStatic = singletonInst;
+        return singletonInst;
+    }
+    
+}

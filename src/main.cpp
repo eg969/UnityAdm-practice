@@ -1,20 +1,17 @@
 
 #include "main.h"
-#include "Interface.h"
-
-
 
 extern "C"
 {
 
     int readAdm(char filePath[2048])
     {
-        return Dll::readAdm(filePath);
+        return AdmReaderSingleton::getInstance()->readAdm(filePath);
     }
 
     const char* getLatestException()
     {
-        return Dll::getLatestException();
+        return AdmReaderSingleton::getInstance()->getLatestException();
     }
 
     AudioObjectBlock getNextObjectBlock()

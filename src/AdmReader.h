@@ -13,68 +13,65 @@
 #include <math.h>
 
 #pragma once
-#define TO_RAD 3.14/180
+#define TO_RAD 3.14/180.0
 
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...) -> overload<Ts...>;
-
-bool isCommonDefinition(adm::AudioChannelFormat* channelFormat);
-template<typename Key, typename Value>
-std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key);
-template<typename Key, typename Value>
-void setInMap(std::map<Key, Value> &targetMap, Key key, Value value);
-void readAvalibelBlocks();
-
-namespace Dll
+class AdmReader
 {
+public:
+    AdmReader();
+    ~AdmReader();
+    
+    bool isCommonDefinition(adm::AudioChannelFormat* channelFormat);
+    template<typename Key, typename Value>
+    std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key);
+    template<typename Key, typename Value>
+    void setInMap(std::map<Key, Value> &targetMap, Key key, Value value);
+    void readAvalibelBlocks();
+
+    //namespace Dll
+    //{
     const char* getLatestException();
     int readAdm(char filePath[2048]);
-}
+    //}
 
-std::shared_ptr<adm::Document> parsedDocument;
-std::string latestExceptionMsg{""};
-std::unique_ptr<bw64::Bw64Reader> reader;
-std::vector<bw64::AudioId> audioIds;
+    std::shared_ptr<adm::Document> parsedDocument;
+    std::string latestExceptionMsg{""};
+    std::unique_ptr<bw64::Bw64Reader> reader;
+    std::vector<bw64::AudioId> audioIds;
 
-std::vector<adm::AudioBlockFormatObjects> objectBlocks;
-std::vector<adm::AudioBlockFormatDirectSpeakers> speakerBlocks;
-std::vector<adm::AudioBlockFormatHoa> hoaBlocks;
-std::vector<adm::AudioBlockFormatBinaural> binauralBlocks;
+    std::shared_ptr<std::vector<adm::AudioBlockFormatObjects>> objectBlocks = std::make_shared<std::vector<adm::AudioBlockFormatObjects>>();
+    std::shared_ptr<std::vector<adm::AudioBlockFormatDirectSpeakers>> speakerBlocks = std::make_shared<std::vector<adm::AudioBlockFormatDirectSpeakers>>();
+    std::shared_ptr<std::vector<adm::AudioBlockFormatHoa>> hoaBlocks = std::make_shared<std::vector<adm::AudioBlockFormatHoa>>();
+    std::shared_ptr<std::vector<adm::AudioBlockFormatBinaural>> binauralBlocks =  std::make_shared<std::vector<adm::AudioBlockFormatBinaural>>();
 
-using ChannelFormatId = int;
-using BlockIndex = int;
-using ChannelNum = int;
-using TypeDef = int;
+    using ChannelFormatId = int;
+    using BlockIndex = int;
+    using ChannelNum = int;
+    using TypeDef = int;
 
-std::map<ChannelFormatId,BlockIndex> knownBlocks;
-std::map<ChannelFormatId,ChannelNum> channelNums;
-std::map<ChannelFormatId,TypeDef> typeDefs;
+    std::map<ChannelFormatId,BlockIndex> knownBlocks;
+    std::map<ChannelFormatId,ChannelNum> channelNums;
+    std::map<ChannelFormatId,TypeDef> typeDefs;
 
-struct holdParameters
-{
-    float gain;
-    float distance;
+    struct holdParameters
+    {
+        float gain;
+        float distance;
+    };
+
+    holdParameters previousParameters;
+    float* audioBuffer = nullptr;
+    std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
 };
 
-holdParameters previousParameters;
+class AdmReaderSingleton {
+public:
+    AdmReaderSingleton();
+    ~AdmReaderSingleton();
+     static std::shared_ptr<AdmReader> getInstance();
+    
+private:
+    inline static std::weak_ptr<AdmReader> singletonStatic;
+    //std::shared_ptr<AdmReader> singleton;
+};
 
-/*struct AdmAudioBlock
-{
-    bool newBlockFlag;
-    char name[100];
-    int cfId;
-    int blockId;
-    int typeDef;
-    float rTime;
-    float duration;
-    float interpolationLength;
-    float x;
-    float y;
-    float z;
-    float gain;
-    int jumpPosition;
-    int moveSpherically;
-    int channelNum;
-};*/
-
-std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;

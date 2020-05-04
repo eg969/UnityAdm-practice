@@ -1,9 +1,8 @@
 //
 //  AudioBlockDirectSpeakers.h
 
-#include "AdmReader.h"
 #pragma once
-
+#include "AdmReader.h"
 struct AudioSpeakerBlock
 {
     bool newBlockFlag;

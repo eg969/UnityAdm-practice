@@ -11,50 +11,21 @@
 
 
 //Interface
-/*AdmAudioBlock getNextBlock()
-{
-    AdmAudioBlock currentBlock;
-    
-    if(blocks.size() ==  0)
-    {
-        readAvalibelBlocks();
-    }
-    
-    if(blocks.size() !=  0)
-    {
-        std::visit(overload
-        {
-            [&currentBlock](adm::AudioBlockFormatObjects audioBlock){currentBlock = getObjectBlock(audioBlock);},
-            [&currentBlock](adm::AudioBlockFormatDirectSpeakers audioBlock){currentBlock = getSpeakerBlock(audioBlock);},
-            [&currentBlock](adm::AudioBlockFormatHoa audioBlock){currentBlock = getHoaBlock(audioBlock);},
-            [&currentBlock](adm::AudioBlockFormatBinaural audioBlock){currentBlock = getBinauralBlock(audioBlock);},
-            [](auto){}
-        },blocks[0]);
-
-        blocks.erase(blocks.begin());
-    }
-    else
-    {
-        currentBlock.newBlockFlag = false;
-    }
-    
-    return currentBlock;
-}*/
-
-
-AudioObjectBlock getNextObjectBlock()
+AudioObjectBlock Dll::getNextObjectBlock()
 {
     AudioObjectBlock currentBlock;
+    auto& objectBlocks = AdmReaderSingleton::getInstance()->objectBlocks;
     
-    if(objectBlocks.size() ==  0)
+    if(objectBlocks->size() ==  0)
     {
-        readAvalibelBlocks();
+         AdmReaderSingleton::getInstance()->readAvalibelBlocks();
     }
     
-    if(objectBlocks.size() !=  0)
+    if(objectBlocks->size() !=  0)
     {
-        currentBlock = loadObjectBlock(objectBlocks[0]);
-        objectBlocks.erase(objectBlocks.begin());
+        auto objectBlocksToProcess = *(objectBlocks.get());
+        currentBlock = loadObjectBlock(objectBlocksToProcess[0]);
+        objectBlocks->erase(objectBlocks->begin());
     }
     else
     {
@@ -64,19 +35,20 @@ AudioObjectBlock getNextObjectBlock()
     return currentBlock;
 }
 
-AudioHoaBlock getNextHoaBlock()
+AudioHoaBlock Dll::getNextHoaBlock()
 {
     AudioHoaBlock currentBlock;
-    
-    if(hoaBlocks.size() ==  0)
+    auto& hoaBlocks = AdmReaderSingleton::getInstance()->hoaBlocks;
+    if(hoaBlocks->size() ==  0)
     {
-        readAvalibelBlocks();
+         AdmReaderSingleton::getInstance()->readAvalibelBlocks();
     }
     
-    if(hoaBlocks.size() !=  0)
+    if(hoaBlocks->size() !=  0)
     {
-        currentBlock = loadHoaBlock(hoaBlocks[0]);
-        hoaBlocks.erase(hoaBlocks.begin());
+        auto hoaBlocksToProcess = *(hoaBlocks.get());
+        currentBlock = loadHoaBlock(hoaBlocksToProcess[0]);
+        hoaBlocks->erase(hoaBlocks->begin());
     }
     else
     {
@@ -86,19 +58,21 @@ AudioHoaBlock getNextHoaBlock()
     return currentBlock;
 }
 
-AudioSpeakerBlock getNextSpeakerBlock()
+AudioSpeakerBlock Dll::getNextSpeakerBlock()
 {
     AudioSpeakerBlock currentBlock;
+    auto& speakerBlocks = AdmReaderSingleton::getInstance()->speakerBlocks;
     
-    if(speakerBlocks.size() ==  0)
+    if(speakerBlocks->size() ==  0)
     {
-        readAvalibelBlocks();
+        AdmReaderSingleton::getInstance()->readAvalibelBlocks();
     }
     
-    if(hoaBlocks.size() !=  0)
+    if(speakerBlocks->size() !=  0)
     {
-        currentBlock = loadSpeakerBlock(speakerBlocks[0]);
-        speakerBlocks.erase(speakerBlocks.begin());
+        auto speakerBlocksToProcess = *(speakerBlocks.get());
+        currentBlock = loadSpeakerBlock(speakerBlocksToProcess[0]);
+        speakerBlocks->erase(speakerBlocks->begin());
     }
     else
     {
@@ -108,19 +82,22 @@ AudioSpeakerBlock getNextSpeakerBlock()
     return currentBlock;
 }
 
-AudioBinauralBlock getNextBinauralBlock()
+AudioBinauralBlock Dll::getNextBinauralBlock()
 {
     AudioBinauralBlock currentBlock;
+    auto& binauralBlocks = AdmReaderSingleton::getInstance()->binauralBlocks;
     
-    if(binauralBlocks.size() ==  0)
+    if(binauralBlocks->size() ==  0)
     {
-        readAvalibelBlocks();
+        
+        AdmReaderSingleton::getInstance()->readAvalibelBlocks();
     }
     
-    if(binauralBlocks.size() !=  0)
+    if(binauralBlocks->size() !=  0)
     {
-        currentBlock = loadBinauralBlock(binauralBlocks[0]);
-        binauralBlocks.erase(binauralBlocks.begin());
+        auto binauralBlocksToProcess = *(binauralBlocks.get());
+        currentBlock = loadBinauralBlock(binauralBlocksToProcess[0]);
+        binauralBlocks->erase(binauralBlocks->begin());
     }
     else
     {
@@ -131,11 +108,13 @@ AudioBinauralBlock getNextBinauralBlock()
 }
 
 //Interface
-
-float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
+float* Dll::getAudioFrame(int startFrame, int bufferSize, int channelNum)
 {
-    if(audioBuffer == nullptr)audioBuffer = new float[bufferSize];
-    float* bufferCounter = audioBuffer;
+    //float* audioBuffer = nullptr;
+    if(AdmReaderSingleton::getInstance()->audioBuffer == nullptr)AdmReaderSingleton::getInstance()->audioBuffer  = new float[bufferSize];
+    float* bufferCounter = AdmReaderSingleton::getInstance()->audioBuffer ;
+    auto& reader = AdmReaderSingleton::getInstance()->reader;
+    
     reader->seek(startFrame);
     std::vector<float> block(bufferSize * reader->channels(), 0.0);
     reader->read(block.data(), bufferSize);
@@ -147,15 +126,19 @@ float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
         bufferCounter++;
     }
 
-    return audioBuffer;
+    return AdmReaderSingleton::getInstance()->audioBuffer;
 }
+
 //Interface
-int getSamplerate()
+int Dll::getSamplerate()
 {
+    auto& reader = AdmReaderSingleton::getInstance()->reader;
     return reader->sampleRate();
 }
+
 //Interface
-int getNumberOfFrames()
+int Dll::getNumberOfFrames()
 {
+    auto& reader = AdmReaderSingleton::getInstance()->reader;
     return reader->numberOfFrames();
 }
