@@ -6,47 +6,11 @@ using System.Threading;
 using UnityEngine;
 
 using static AudioBlockWrapper;
-using static AudioBlockObject;
+using static AudioBlockObjects;
+using static BlockTypes;
 
 public class AudioBlockInterface
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public struct CAudioBlock
-    {
-        public byte newBlockFlag;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
-        public byte[] name;
-        public int cfId;
-        public int blockId;
-        public int typeDef;
-        public float rTime;
-        public float duration;
-        public float interpolationLength;
-        public float x;
-        public float y;
-        public float z;
-        public float gain;
-        public int jumpPosition;
-        public int moveSpherically;
-        public int channelNum;
-    };
-
-    public class UnityAudioBlock
-    {
-        public int blockId;
-        public float startTime;
-        public float endTime;
-        public float duration;
-        public float interpolationLength;
-        public Vector3 startPos;
-        public Vector3 endPos;
-        public float startGain;
-        public float endGain;
-        public bool jumpPosition;
-        public bool moveSpherically;
-
-    };
-
     //Thread getBlocksThread;
 
     public static bool readFile(string filePath)
@@ -70,12 +34,24 @@ public class AudioBlockInterface
 
     public static void getBlocksLoop()
     {
+        //int i = 0;
         while (true)
         {
-            CAudioBlock nextBlock = getNextObjectBlock();
 
-            getAudioBlockObjects(nextBlock);
+            AdmObjectsAudioBlock nextBlock = getNextObjectBlock();
+
+            loadObjectsAudioBlock(nextBlock);
             Thread.Sleep(20);
+
+            /*if (i < 5)
+            {
+                Thread.Sleep(1000);
+            }
+            else
+            {
+                Thread.Sleep(20);
+            }
+            i++;*/
         }
     }
 }

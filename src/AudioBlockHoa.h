@@ -13,6 +13,12 @@ struct AudioHoaBlock
     float rTime;
     float duration;
     int channelNum;
+    int order;
+    int degree;
+    float nfcRefDist;
+    int screenRef;
+    char normalization[100];
+    char equation[100];
 };
 
 AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock);

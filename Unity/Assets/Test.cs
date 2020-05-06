@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 using static AudioBlockInterface;
-using static AudioBlockObject;
+using static AudioBlockObjects;
 
 public class Test : MonoBehaviour
 {

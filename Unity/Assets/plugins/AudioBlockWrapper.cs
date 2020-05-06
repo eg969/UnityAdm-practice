@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using UnityEditor;
-using UnityEngine;
 
-using static AudioBlockInterface;
+
+using static BlockTypes;
 
 public class AudioBlockWrapper
 {
@@ -24,7 +18,7 @@ public class AudioBlockWrapper
     public static extern int readAdm(byte[] filePath);
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
-    public static extern CAudioBlock getNextObjectBlock();
+    public static extern AdmObjectsAudioBlock getNextObjectBlock();
 
     /*[DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern CAudioBlock getNextBlock();

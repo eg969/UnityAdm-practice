@@ -3,20 +3,21 @@ using System.Text;
 using UnityEngine;
 using static AudioBlockInterface;
 using static AudioBlockWrapper;
+using static BlockTypes;
 
-public class AudioBlockObject
+public class AudioBlockObjects
 {
 
-    public static Dictionary<int, UnityAudioChannelFormat> channelFormats = new Dictionary<int, UnityAudioChannelFormat>();
+    public static Dictionary<int, UnityObjectsChannelFormat> channelFormats = new Dictionary<int, UnityObjectsChannelFormat>();
     public static List<int> activeChannelFormats = new List<int>();
     public static Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
     
 
-    public class UnityAudioChannelFormat
+    public class UnityObjectsChannelFormat
     {
         public string name;
         public int cfId;
-        public List<UnityAudioBlock> audioBlocks;
+        public List<UnityObjectsAudioBlock> audioBlocks;
         public int currentAudioBlocksIndex;
         public int channelNum;
         private int position = 0;
@@ -58,7 +59,7 @@ public class AudioBlockObject
         while (channelFormats[cfId].currentAudioBlocksIndex < channelFormats[cfId].audioBlocks.Count)
         {
             //lock
-            UnityAudioBlock audioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex];
+            UnityObjectsAudioBlock audioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex];
             if (audioBlock.startTime <= timeSnapshot)
             {
                 // This block has started. Has it ended?
@@ -106,8 +107,17 @@ public class AudioBlockObject
                 else
                 {
                     // It has ended. Make sure we set the position to it's final resting place.
-                    audioObjects[cfId].transform.position = audioBlock.endPos;
-                    if (audioObjects[cfId].GetComponent<AudioSource>()) audioObjects[cfId].GetComponent<AudioSource>().volume = audioBlock.endGain;
+                    UnityObjectsAudioBlock nextAudioBlock = new UnityObjectsAudioBlock();
+                    if (channelFormats[cfId].audioBlocks.Count > channelFormats[cfId].currentAudioBlocksIndex + 1)
+                    {
+                        nextAudioBlock = channelFormats[cfId].audioBlocks[channelFormats[cfId].currentAudioBlocksIndex + 1];
+                    }
+                    if (nextAudioBlock.endTime >= timeSnapshot)
+                    {
+                        audioObjects[cfId].transform.position = audioBlock.endPos;
+                        if (audioObjects[cfId].GetComponent<AudioSource>()) audioObjects[cfId].GetComponent<AudioSource>().volume = audioBlock.endGain;
+                    }
+
                     // Now increment currentAudioBlocksIndex and re-evaluate the while - we might have already started the next block.
                     channelFormats[cfId].currentAudioBlocksIndex++;
                 }
@@ -156,13 +166,14 @@ public class AudioBlockObject
         }
     }
 
-    public static void getAudioBlockObjects(CAudioBlock nextBlock)
+    public static void loadObjectsAudioBlock(AdmObjectsAudioBlock nextBlock)
     {
         if (nextBlock.newBlockFlag != 0)
         {
             // We assume the blocks will come through in order for optimisation purposes
             // (it's an ADM stipulation anyway, although might not be the case for S-ADM depending upon the transport mechanism used.)
             // We do simple checks to confirm this, and discard those blocks that don't continue on from existing blocks.
+
             bool jumpPos = false;
             bool moveSpher = false;
 
@@ -183,8 +194,7 @@ public class AudioBlockObject
                 moveSpher = false;
             }
 
-
-            UnityAudioBlock newBlock = new UnityAudioBlock
+            UnityObjectsAudioBlock newBlock = new UnityObjectsAudioBlock
             {
                 blockId = nextBlock.blockId,
                 startTime = nextBlock.rTime,
@@ -205,11 +215,11 @@ public class AudioBlockObject
                 lock (channelFormats)
                 {
                     channelFormats.Add(nextBlock.cfId,
-                        new UnityAudioChannelFormat
+                        new UnityObjectsChannelFormat
                         {
                             name = Encoding.ASCII.GetString(nextBlock.name),
                             cfId = nextBlock.cfId,
-                            audioBlocks = new List<UnityAudioBlock>(),
+                            audioBlocks = new List<UnityObjectsAudioBlock>(),
                             currentAudioBlocksIndex = 0,
                             channelNum = nextBlock.channelNum
                         }
@@ -224,7 +234,7 @@ public class AudioBlockObject
 
             if (channelFormats[nextBlock.cfId].audioBlocks.Count > 0)
             {
-                UnityAudioBlock previousBlock = channelFormats[nextBlock.cfId].audioBlocks[channelFormats[nextBlock.cfId].audioBlocks.Count - 1];
+                UnityObjectsAudioBlock previousBlock = channelFormats[nextBlock.cfId].audioBlocks[channelFormats[nextBlock.cfId].audioBlocks.Count - 1];
 
                 if (newBlock.blockId > previousBlock.blockId && newBlock.startTime >= previousBlock.endTime)
                 {

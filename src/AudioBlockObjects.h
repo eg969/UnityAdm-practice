@@ -16,6 +16,16 @@ struct AudioObjectBlock
     float x;
     float y;
     float z;
+    int importance;
+    float width;
+    float height;
+    float depth;
+    float diffuse;
+    float divergence;
+    float maxDistance;
+    float positionRange;
+    float azimuthRange;
+    int channelLock;
     float gain;
     int jumpPosition;
     int moveSpherically;

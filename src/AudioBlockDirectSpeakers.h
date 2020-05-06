@@ -9,9 +9,23 @@ struct AudioSpeakerBlock
     char name[100];
     int cfId;
     int blockId;
-    int typeDef;
     float rTime;
     float duration;
+    float x;
+    float y;
+    float z;
+    float azimuth;
+    float elevation;
+    float distance;
+    float azimuthMax;
+    float elevationMax;
+    float distanceMax;
+    float azimuthMin;
+    float elevationMin;
+    float distanceMin;
+    char verticalEdge[10];
+    char horizontalEdge[10];
+    int typeDef;
     int channelNum;
 };
 

@@ -25,6 +25,10 @@ AudioBinauralBlock loadBinauralBlock(adm::AudioBlockFormatBinaural binauralBlock
     currentBlock.cfId = binauralBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
     currentBlock.blockId = binauralBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
     
+    
+    if(binauralBlock.has<adm::Rtime>())currentBlock.rTime = binauralBlock.get<adm::Rtime>().get().count()/1000000000.0;
+    if(binauralBlock.has<adm::Duration>())currentBlock.duration = binauralBlock.get<adm::Duration>().get().count()/1000000000.0;
+    
     auto channelNums = AdmReaderSingleton::getInstance()->channelNums;
     auto typeDefs = AdmReaderSingleton::getInstance()->typeDefs;
     
