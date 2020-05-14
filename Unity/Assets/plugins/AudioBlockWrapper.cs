@@ -20,20 +20,23 @@ public class AudioBlockWrapper
     [DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern AdmObjectsAudioBlock getNextObjectBlock();
 
-    /*[DllImport(dll, CharSet = CharSet.Ansi)]
-    public static extern CAudioBlock getNextBlock();
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern AdmHoaAudioBlock getNextHoaBlock();
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
-    public static extern CAudioBlock getNextBlock();
+    public static extern AdmSpeakerAudioBlock getNextSpeakerBlock();
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
-    public static extern CAudioBlock getNextBlock();*/
+    public static extern AdmBinauralAudioBlock getNextBinauralBlock();
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern IntPtr getLatestException();
 
     [DllImport(dll)]
     public static extern unsafe float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
+
+    [DllImport(dll)]
+    public static extern unsafe float* getHoaAudioFrame(int startFrame, int bufferSize, int[] channelNums, int numberOfChannels);
 
     [DllImport(dll)]
     public static extern int getSamplerate();

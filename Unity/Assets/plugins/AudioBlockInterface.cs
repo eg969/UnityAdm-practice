@@ -37,10 +37,12 @@ public class AudioBlockInterface
         //int i = 0;
         while (true)
         {
+            AdmObjectsAudioBlock nextObjectBlock = getNextObjectBlock();
+            AdmHoaAudioBlock nextHoaBlock = getNextHoaBlock();
+            AdmSpeakerAudioBlock nextSpeakerBlock = getNextSpeakerBlock();
+            AdmBinauralAudioBlock nextBinauralBlock = getNextBinauralBlock();
 
-            AdmObjectsAudioBlock nextBlock = getNextObjectBlock();
-
-            loadObjectsAudioBlock(nextBlock);
+            loadObjectsAudioBlock(nextObjectBlock);
             Thread.Sleep(20);
 
             /*if (i < 5)

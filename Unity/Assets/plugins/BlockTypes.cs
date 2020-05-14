@@ -10,6 +10,7 @@ public static class BlockTypes
         public byte newBlockFlag;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
         public byte[] name;
+        public int objId;
         public int cfId;
         public int blockId;
         public int typeDef;
@@ -41,6 +42,7 @@ public static class BlockTypes
         public byte newBlockFlag;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
         public byte[] name;
+        public int objId;
         public int cfId;
         public int blockId;
         public int typeDef;
@@ -63,6 +65,7 @@ public static class BlockTypes
         public byte newBlockFlag;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
         public byte[] name;
+        public int objId;
         public int cfId;
         public int blockId;
         public float rTime;
@@ -94,6 +97,7 @@ public static class BlockTypes
         public byte newBlockFlag;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
         public byte[] name;
+        public int objId;
         public int cfId;
         public int blockId;
         public int typeDef;

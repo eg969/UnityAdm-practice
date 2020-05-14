@@ -15,6 +15,7 @@ AudioBinauralBlock loadBinauralBlock(adm::AudioBlockFormatBinaural binauralBlock
     
     currentBlock.newBlockFlag = false;
     strcpy(currentBlock.name, std::string("").c_str());
+    currentBlock.objId = 0;
     currentBlock.cfId = 0;
     currentBlock.blockId = 0;
     currentBlock.typeDef = -1;
@@ -22,7 +23,8 @@ AudioBinauralBlock loadBinauralBlock(adm::AudioBlockFormatBinaural binauralBlock
     currentBlock.duration = 0.0;
     currentBlock.channelNum = -1;
     
-    currentBlock.cfId = binauralBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+    currentBlock.newBlockFlag = true;
+    currentBlock.cfId = std::stoi(adm::formatId(binauralBlock.get<adm::AudioBlockFormatId>()).substr(3,8), nullptr, 16);
     currentBlock.blockId = binauralBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
     
     

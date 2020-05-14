@@ -18,6 +18,7 @@ AudioObjectBlock loadObjectBlock(adm::AudioBlockFormatObjects objectBlock)
 
     currentBlock.newBlockFlag = false;
     strcpy(currentBlock.name, std::string("").c_str());
+    currentBlock.objId = 0;
     currentBlock.cfId = 0;
     currentBlock.blockId = 0;
     currentBlock.typeDef = -1;
@@ -144,7 +145,7 @@ AudioObjectBlock loadObjectBlock(adm::AudioBlockFormatObjects objectBlock)
     
     
     currentBlock.newBlockFlag = true;
-    currentBlock.cfId = objectBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+    currentBlock.cfId = std::stoi(adm::formatId(objectBlock.get<adm::AudioBlockFormatId>()).substr(3,8), nullptr, 16);
     currentBlock.blockId = objectBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
 
     auto channelNums = AdmReaderSingleton::getInstance()->channelNums;

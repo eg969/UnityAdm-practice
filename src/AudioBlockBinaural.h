@@ -8,6 +8,7 @@ struct AudioBinauralBlock
 {
     bool newBlockFlag;
     char name[100];
+    int objId;
     int cfId;
     int blockId;
     int typeDef;

@@ -15,6 +15,7 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     //Initial values
     currentBlock.newBlockFlag = false;
     strcpy(currentBlock.name, std::string("").c_str());
+    currentBlock.objId = 0;
     currentBlock.cfId = 0;
     currentBlock.blockId = 0;
     currentBlock.typeDef = -1;
@@ -49,7 +50,8 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     if(hoaBlock.has<adm::Normalization>())strcpy(currentBlock.name, hoaBlock.get<adm::Normalization>().get().c_str());;
     if(hoaBlock.has<adm::Equation>())strcpy(currentBlock.name, hoaBlock.get<adm::Equation>().get().c_str());;
     
-    currentBlock.cfId = hoaBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
+    currentBlock.newBlockFlag = true;
+    currentBlock.cfId = std::stoi(adm::formatId(hoaBlock.get<adm::AudioBlockFormatId>()).substr(3,8), nullptr, 16);
     currentBlock.blockId = hoaBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
     
     auto channelNums = AdmReaderSingleton::getInstance()->channelNums;

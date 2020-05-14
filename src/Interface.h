@@ -19,6 +19,7 @@ namespace Dll
     //float* audioBuffer = nullptr;
 
     float* getAudioFrame(int startFrame, int bufferSize, int channelNum);
+    float* getHoaAudioFrame(int startFrame, int bufferSize, int channelNums[], int amountOfChannels);
     int getSamplerate();
     int getNumberOfFrames();
 

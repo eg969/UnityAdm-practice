@@ -59,16 +59,14 @@ void AdmReader::setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
 void AdmReader::readAvalibelBlocks()
 {
     auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
-    int tfIdVal;
     for(auto trackFormat : trackFormats)
     {
-        tfIdVal = trackFormat->get<adm::AudioTrackFormatId>().get<adm::AudioTrackFormatIdValue>().get();
+        auto tfIdStr = adm::formatId(trackFormat->get<adm::AudioTrackFormatId>());//.get<adm::AudioTrackFormatIdValue>().get();
         for(auto& audioId : audioIds)
         {
-            std::string tfIdString = audioId.trackRef().substr(7,4);
-            int tfIdInt = std::stoi(tfIdString, nullptr, 16);
-
-            if(tfIdVal == tfIdInt)
+            std::string tfIdString = audioId.trackRef();
+            
+            if(tfIdStr == tfIdString)
             {
                 std::shared_ptr<adm::AudioStreamFormat> streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
 
@@ -78,7 +76,8 @@ void AdmReader::readAvalibelBlocks()
 
                     if(channelFormat)
                     {
-                        int cfId = channelFormat->get<adm::AudioChannelFormatId>().get<adm::AudioChannelFormatIdValue>().get();
+                        auto cfIdStr = adm::formatId(channelFormat->get<adm::AudioChannelFormatId>());
+                        int cfId = std::stoi(cfIdStr.substr(3,8), nullptr, 16);
                         setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
 
                         int typeDef = channelFormat->get<adm::TypeDescriptor>().get();
@@ -86,7 +85,6 @@ void AdmReader::readAvalibelBlocks()
 
                         for(auto newBlock : channelFormat->getElements<adm::AudioBlockFormatObjects>())
                         {
-                            int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
                             int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
@@ -98,7 +96,6 @@ void AdmReader::readAvalibelBlocks()
 
                         for(auto newBlock : channelFormat->getElements<adm::AudioBlockFormatDirectSpeakers>())
                         {
-                            int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
                             int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
@@ -110,7 +107,6 @@ void AdmReader::readAvalibelBlocks()
 
                         for(auto newBlock : channelFormat->getElements<adm::AudioBlockFormatHoa>())
                         {
-                            int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
                             int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
@@ -122,7 +118,6 @@ void AdmReader::readAvalibelBlocks()
 
                         for(auto newBlock : channelFormat->getElements<adm::AudioBlockFormatBinaural>())
                         {
-                            int cfId = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdValue>().get();
                             int blockId  = newBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
 
                             if(!getFromMap(knownBlocks, cfId).has_value() || *(getFromMap(knownBlocks, cfId)) < blockId)
