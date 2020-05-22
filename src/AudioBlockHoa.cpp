@@ -25,6 +25,7 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     ////////////////////////////////
     currentBlock.order = -1;
     currentBlock.degree = -1;
+    currentBlock.numOfChannels = 0;
     currentBlock.nfcRefDist = 0.0;
     currentBlock.screenRef = 0;
     strcpy(currentBlock.normalization, std::string("").c_str());
@@ -35,6 +36,7 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     if(hoaBlock.has<adm::Duration>())currentBlock.duration = hoaBlock.get<adm::Duration>().get().count()/1000000000.0;
     if(hoaBlock.has<adm::Order>())currentBlock.order = hoaBlock.get<adm::Order>().get();
     if(hoaBlock.has<adm::Degree>())currentBlock.degree = hoaBlock.get<adm::Degree>().get();
+    
     if(hoaBlock.has<adm::NfcRefDist>())currentBlock.nfcRefDist = hoaBlock.get<adm::NfcRefDist>().get();
     if(hoaBlock.has<adm::ScreenRef>())
     {
@@ -56,6 +58,18 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     
     auto channelNums = AdmReaderSingleton::getInstance()->channelNums;
     auto typeDefs = AdmReaderSingleton::getInstance()->typeDefs;
+    auto objectIds = AdmReaderSingleton::getInstance()->objectIds;
+    auto hoaChannels = AdmReaderSingleton::getInstance()->hoaChannels;
+    
+    if(AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).has_value())
+    {
+        currentBlock.objId = AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).value();
+    }
+    
+    if(AdmReaderSingleton::getInstance()->getFromMap(hoaChannels, currentBlock.objId).has_value())
+    {
+        currentBlock.numOfChannels = AdmReaderSingleton::getInstance()->getFromMap(hoaChannels, currentBlock.objId).value();
+    }
     
     if(AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).has_value())
     {
@@ -66,6 +80,7 @@ AudioHoaBlock loadHoaBlock(adm::AudioBlockFormatHoa hoaBlock)
     {
         currentBlock.typeDef = AdmReaderSingleton::getInstance()->getFromMap(typeDefs, currentBlock.cfId).value();
     }
+    
     
     return currentBlock;
 }

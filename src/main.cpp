@@ -39,6 +39,11 @@ extern "C"
         return Dll::getAudioFrame(startFrame, bufferSize, channelNum);
     }
 
+    float* getHoaAudioFrame(int startFrame, int bufferSize, int channelNums[], int amountOfChannels)
+    {
+        return Dll::getHoaAudioFrame(startFrame, bufferSize, channelNums, amountOfChannels);
+    }
+
     int getSamplerate()
     {
         return Dll::getSamplerate();

@@ -58,14 +58,17 @@ void AdmReader::setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
 //AdmReader
 void AdmReader::readAvalibelBlocks()
 {
+    
     auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
     for(auto trackFormat : trackFormats)
     {
-        auto tfIdStr = adm::formatId(trackFormat->get<adm::AudioTrackFormatId>());//.get<adm::AudioTrackFormatIdValue>().get();
+        //auto trackFormat = trackUid->getReference<adm::AudioTrackFormat>();
+        
+        auto tfIdStr = adm::formatId(trackFormat->get<adm::AudioTrackFormatId>());
+        
         for(auto& audioId : audioIds)
         {
             std::string tfIdString = audioId.trackRef();
-            
             if(tfIdStr == tfIdString)
             {
                 std::shared_ptr<adm::AudioStreamFormat> streamFormat = trackFormat->getReference<adm::AudioStreamFormat>();
@@ -78,6 +81,34 @@ void AdmReader::readAvalibelBlocks()
                     {
                         auto cfIdStr = adm::formatId(channelFormat->get<adm::AudioChannelFormatId>());
                         int cfId = std::stoi(cfIdStr.substr(3,8), nullptr, 16);
+                        auto audioObjects = parsedDocument->getElements<adm::AudioObject>();
+                        std::shared_ptr<adm::AudioPackFormat> packFormat = streamFormat->getReference<adm::AudioPackFormat>();
+                        for(auto audioObject : audioObjects)
+                        {
+                            auto packRef = audioObject->getReferences<adm::AudioPackFormat>()[0];
+                            if(packFormat != nullptr && packFormat == packRef)
+                            {
+                                auto objIdStr = adm::formatId(audioObject->get<adm::AudioObjectId>());
+                                int objId = std::stoi(objIdStr.substr(3,8), nullptr, 16);
+                                int numOfChannels = 0;
+                                auto cfRefs = packFormat->getReferences<adm::AudioChannelFormat>();
+                                for(auto cfRef : cfRefs)
+                                {
+                                    int order = 0;
+                                    auto blocks = cfRef->getElements<adm::AudioBlockFormatHoa>();
+                                    if(blocks.size() != 0)
+                                    {
+                                        auto block = blocks[0];
+                                        if(block.has<adm::Order>())order = block.get<adm::Order>().get();
+                                        int newNumOfChnannels = (order + 1) * (order + 1);
+                                        if(newNumOfChnannels > numOfChannels ) numOfChannels = newNumOfChnannels;
+                                    }
+                                }
+                                setInMap(objectIds, cfId, objId);
+                                setInMap(hoaChannels, objId, numOfChannels);
+                            }
+                        }
+
                         setInMap(channelNums, cfId, (int)audioId.trackIndex() - 1);
 
                         int typeDef = channelFormat->get<adm::TypeDescriptor>().get();
@@ -127,7 +158,7 @@ void AdmReader::readAvalibelBlocks()
                             }
                         }
                         
-                        notCommonDefs.push_back(channelFormat);
+                        //notCommonDefs.push_back(channelFormat);
                     }
                 }
             }
@@ -148,7 +179,7 @@ int AdmReader::readAdm(char filePath[2048])
     previousParameters.distance = 1.0;
     reader = nullptr;
     parsedDocument = nullptr;
-    notCommonDefs.clear();
+    //notCommonDefs.clear();
 
     try
     {
@@ -166,7 +197,7 @@ int AdmReader::readAdm(char filePath[2048])
         latestExceptionMsg = e.what();
         return 1;
     }
-        return 0;
+    return 0;
 }
 
 const char* AdmReader::getLatestException()

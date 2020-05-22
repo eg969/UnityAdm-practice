@@ -16,6 +16,7 @@ struct AudioHoaBlock
     int channelNum;
     int order;
     int degree;
+    int numOfChannels;
     float nfcRefDist;
     int screenRef;
     char normalization[100];

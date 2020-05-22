@@ -150,6 +150,13 @@ AudioObjectBlock loadObjectBlock(adm::AudioBlockFormatObjects objectBlock)
 
     auto channelNums = AdmReaderSingleton::getInstance()->channelNums;
     auto typeDefs = AdmReaderSingleton::getInstance()->typeDefs;
+    auto objectIds = AdmReaderSingleton::getInstance()->objectIds;
+    
+    if(AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).has_value())
+    {
+        currentBlock.objId = AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).value();
+    }
+    
     if(AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).has_value())
     {
        currentBlock.channelNum = AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).value();

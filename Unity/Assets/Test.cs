@@ -2,6 +2,8 @@
 
 using static AudioBlockInterface;
 using static AudioBlockObjects;
+using static AudioBlockHoa;
+using UnityEditor;
 
 public class Test : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class Test : MonoBehaviour
 
     void Awake()
     {
-        readFile("/Users/edgarsg/Desktop/panned_noise_adm.wav");
+        readFile("/Users/edgarsg/Desktop/hoa_4ch_1stOrderAmbix_commondef.wav");
 
         /*string path = AssetDatabase.GetAssetPath(ambisonicsClip);
         AudioImporter audioImporter = AssetImporter.GetAtPath(path) as AudioImporter;
@@ -22,6 +24,7 @@ public class Test : MonoBehaviour
     void Update()
     {
         updateAudioBlockObjects(objectInstance);
+        updateAudioBlockHoa(objectInstance);
     }
 
 }

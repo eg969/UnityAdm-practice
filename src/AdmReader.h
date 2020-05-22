@@ -48,8 +48,12 @@ public:
     using BlockIndex = int;
     using ChannelNum = int;
     using TypeDef = int;
+    using ObjectId = int;
+    using NumberOfChannels = int;
 
     std::map<ChannelFormatId,BlockIndex> knownBlocks;
+    std::map<ChannelFormatId,ObjectId> objectIds;
+    std::map<ObjectId,NumberOfChannels> hoaChannels;
     std::map<ChannelFormatId,ChannelNum> channelNums;
     std::map<ChannelFormatId,TypeDef> typeDefs;
 
@@ -60,8 +64,9 @@ public:
     };
 
     holdParameters previousParameters;
-    float* audioBuffer = nullptr;
-    std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
+    float* audioObjectBuffer = nullptr;
+    float* audioHoaBuffer = nullptr;
+    //std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
 };
 
 class AdmReaderSingleton {

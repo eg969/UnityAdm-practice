@@ -114,8 +114,8 @@ AudioBinauralBlock Dll::getNextBinauralBlock()
 float* Dll::getAudioFrame(int startFrame, int bufferSize, int channelNum)
 {
     //float* audioBuffer = nullptr;
-    if(AdmReaderSingleton::getInstance()->audioBuffer == nullptr)AdmReaderSingleton::getInstance()->audioBuffer  = new float[bufferSize];
-    float* bufferCounter = AdmReaderSingleton::getInstance()->audioBuffer ;
+    if(AdmReaderSingleton::getInstance()->audioObjectBuffer == nullptr)AdmReaderSingleton::getInstance()->audioObjectBuffer  = new float[bufferSize];
+    float* bufferCounter = AdmReaderSingleton::getInstance()->audioObjectBuffer ;
     auto& reader = AdmReaderSingleton::getInstance()->reader;
     
     reader->seek(startFrame);
@@ -129,31 +129,32 @@ float* Dll::getAudioFrame(int startFrame, int bufferSize, int channelNum)
         bufferCounter++;
     }
 
-    return AdmReaderSingleton::getInstance()->audioBuffer;
+    return AdmReaderSingleton::getInstance()->audioObjectBuffer;
 }
 
 float* Dll::getHoaAudioFrame(int startFrame, int bufferSize, int channelNums[], int amountOfChannels)
 {
     //float* audioBuffer = nullptr;
-    if(AdmReaderSingleton::getInstance()->audioBuffer == nullptr)AdmReaderSingleton::getInstance()->audioBuffer  = new float[bufferSize];
-    float* bufferCounter = AdmReaderSingleton::getInstance()->audioBuffer ;
+    if(AdmReaderSingleton::getInstance()->audioHoaBuffer == nullptr)AdmReaderSingleton::getInstance()->audioHoaBuffer  = new float[bufferSize];
+    float* bufferCounter = AdmReaderSingleton::getInstance()->audioHoaBuffer ;
     auto& reader = AdmReaderSingleton::getInstance()->reader;
     
     reader->seek(startFrame);
     std::vector<float> block(bufferSize * reader->channels(), 0.0);
     reader->read(block.data(), bufferSize);
 
-    for(int sampleNum = 0; sampleNum < bufferSize; sampleNum++)
+    for(int sampleNum = 0; sampleNum < bufferSize/amountOfChannels; sampleNum++)
     {
         for(int channelIndex = 0 ; channelIndex < amountOfChannels; channelIndex++)
         {
-            int blockPos = channelNums[channelIndex] + (sampleNum * reader->channels());
+            auto channelNum = channelNums[channelIndex];
+            int blockPos = channelNum + (sampleNum * reader->channels());
             *bufferCounter = block[blockPos];
             bufferCounter++;
         }
     }
 
-    return AdmReaderSingleton::getInstance()->audioBuffer;
+    return AdmReaderSingleton::getInstance()->audioHoaBuffer;
 }
 //Interface
 int Dll::getSamplerate()

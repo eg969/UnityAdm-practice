@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+
 using static BlockTypes;
 using static AudioBlockWrapper;
 using UnityEngine.Audio;
+using UnityEditor;
 
 public class AudioBlockHoa
 {
@@ -46,7 +48,7 @@ public class AudioBlockHoa
                     channelNums[channelFormat.acn] = channelFormat.channelNum;
                 }
 
-                AudioClip clip = AudioClip.Create("", frameSize, numberOfChannels, samplerate, true, OnAudioRead, OnAudioSetPosition);
+                AudioClip clip = AudioClip.Create(clipId.ToString(), frameSize, numberOfChannels, samplerate, true, OnAudioRead, OnAudioSetPosition);
                 return clip;
             }
             else
@@ -77,7 +79,7 @@ public class AudioBlockHoa
     }
 
 
-    public static void updateAudioBlockHoa()
+    public static void updateAudioBlockHoa(GameObject objectInstance)
     {
         List<int> clipIdsToProcess;
 
@@ -90,24 +92,33 @@ public class AudioBlockHoa
         {
             if (!hoaAudioSources.ContainsKey(clipId))
             {
-                AudioSource hoaAudioSourceInstance = UnityEngine.Object.Instantiate(new AudioSource()) as AudioSource;
-                if (hoaAudioClips[clipId].numberOfChannels == hoaAudioClips[clipId].channelFormats.Count)
-                {
-                    AudioMixer mixer = Resources.Load("Master") as AudioMixer;
-                    hoaAudioSourceInstance.outputAudioMixerGroup = mixer.FindMatchingGroups("ResonanceAudioMixer")[0];
-                    hoaAudioSourceInstance.dopplerLevel = 0;
-                    hoaAudioSourceInstance.clip = hoaAudioClips[clipId].createAudioClip();
-                    hoaAudioSourceInstance.spatialBlend = 0.0f;
-                    hoaAudioSourceInstance.loop = false;
-                    hoaAudioSourceInstance.playOnAwake = true;
-                    hoaAudioSourceInstance.Play();
-
+                if (hoaAudioClips.ContainsKey(clipId))
+                { 
+                    if (hoaAudioClips[clipId].numberOfChannels == hoaAudioClips[clipId].channelFormats.Count)
+                    {
+                        GameObject hoaAudioSourceInstance = UnityEngine.Object.Instantiate(objectInstance) as GameObject;
+                        hoaAudioSourceInstance.AddComponent<AudioSource>();
+                        AudioSource audioSource = hoaAudioSourceInstance.GetComponent<AudioSource>();
+                        AudioMixer mixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
+                        var test = mixer.FindMatchingGroups("Master")[0];
+                        audioSource.outputAudioMixerGroup = test;
+                        audioSource.dopplerLevel = 0;
+                        AudioClip clip = hoaAudioClips[clipId].createAudioClip();
+                        //clip.name = clipId.ToString();
+                        audioSource.clip = clip;
+                        audioSource.spatialBlend = 0.0f;
+                        audioSource.loop = false;
+                        audioSource.playOnAwake = true;
+                        audioSource.Play();
+                        hoaAudioSources.Add(hoaAudioClips[clipId].clipId, audioSource);
+                        var clipTest = audioSource.GetComponent<AudioClip>();
+                        //string path = AssetDatabase.GetAssetPath(clipTest);
+                        //AudioImporter audioImporter = AssetImporter.GetAtPath(path) as AudioImporter;
+                        //audioImporter.ambisonic = true;
+                        //AssetDatabase.ImportAsset(path);
+                    }
                 }
-                hoaAudioSourceInstance.name = clipId.ToString();
-                hoaAudioSources.Add(hoaAudioClips[clipId].clipId, hoaAudioSourceInstance);
             }
-
-
         }
     }
 
@@ -133,7 +144,7 @@ public class AudioBlockHoa
                         new UnityHoaAudioClip
                         {
                             clipId = nextBlock.objId,
-                            numberOfChannels = (nextBlock.order + 1) ^ 2,
+                            numberOfChannels = nextBlock.numOfChannels,
                             channelFormats = new Dictionary<int, UnityHoaChannelFormat>()
                         }
                     ); 
@@ -157,7 +168,7 @@ public class AudioBlockHoa
                             audioBlocks = new List<UnityHoaAudioBlock>(),
                             currentAudioBlocksIndex = 0,
                             channelNum = nextBlock.channelNum,
-                            acn = nextBlock.order^2 + nextBlock.order + nextBlock.degree,
+                            acn = nextBlock.order * nextBlock.order + nextBlock.order + nextBlock.degree,
                             degree = nextBlock.degree,
                             clipId = nextBlock.objId
                         }

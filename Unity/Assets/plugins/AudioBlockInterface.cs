@@ -7,6 +7,7 @@ using UnityEngine;
 
 using static AudioBlockWrapper;
 using static AudioBlockObjects;
+using static AudioBlockHoa;
 using static BlockTypes;
 
 public class AudioBlockInterface
@@ -43,6 +44,7 @@ public class AudioBlockInterface
             AdmBinauralAudioBlock nextBinauralBlock = getNextBinauralBlock();
 
             loadObjectsAudioBlock(nextObjectBlock);
+            loadHoaAudioBlock(nextHoaBlock);
             Thread.Sleep(20);
 
             /*if (i < 5)

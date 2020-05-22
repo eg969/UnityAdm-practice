@@ -51,6 +51,7 @@ public static class BlockTypes
         public int channelNum;
         public int order;
         public int degree;
+        public int numOfChannels;
         public float nfcRefDist;
         public int screenRef;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 100)]
