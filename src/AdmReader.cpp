@@ -82,30 +82,43 @@ void AdmReader::readAvalibelBlocks()
                         auto cfIdStr = adm::formatId(channelFormat->get<adm::AudioChannelFormatId>());
                         int cfId = std::stoi(cfIdStr.substr(3,8), nullptr, 16);
                         auto audioObjects = parsedDocument->getElements<adm::AudioObject>();
-                        std::shared_ptr<adm::AudioPackFormat> packFormat = streamFormat->getReference<adm::AudioPackFormat>();
+                        auto packFormats = parsedDocument->getElements<adm::AudioPackFormat>();
                         for(auto audioObject : audioObjects)
                         {
-                            auto packRef = audioObject->getReferences<adm::AudioPackFormat>()[0];
-                            if(packFormat != nullptr && packFormat == packRef)
+                            for (auto packFormat : packFormats)
                             {
-                                auto objIdStr = adm::formatId(audioObject->get<adm::AudioObjectId>());
-                                int objId = std::stoi(objIdStr.substr(3,8), nullptr, 16);
-                                int numOfChannels = 0;
-                                auto cfRefs = packFormat->getReferences<adm::AudioChannelFormat>();
-                                for(auto cfRef : cfRefs)
+                                auto packRef = audioObject->getReferences<adm::AudioPackFormat>()[0];
+                                if(packFormat != nullptr && packFormat == packRef)
                                 {
-                                    int order = 0;
-                                    auto blocks = cfRef->getElements<adm::AudioBlockFormatHoa>();
-                                    if(blocks.size() != 0)
+                                    auto objIdStr = adm::formatId(audioObject->get<adm::AudioObjectId>());
+                                    int objId = std::stoi(objIdStr.substr(3,8), nullptr, 16);
+                                    int numOfChannels = 0;
+                                    
+                                    std::shared_ptr<adm::AudioPackFormat> nextPf = nullptr;
+                                    if(packFormat->getReferences<adm::AudioPackFormat>().size() > 0)nextPf = packFormat->getReferences<adm::AudioPackFormat>()[0];
+                                    
+                                    while(nextPf)
                                     {
-                                        auto block = blocks[0];
-                                        if(block.has<adm::Order>())order = block.get<adm::Order>().get();
-                                        int newNumOfChnannels = (order + 1) * (order + 1);
-                                        if(newNumOfChnannels > numOfChannels ) numOfChannels = newNumOfChnannels;
+                                        packFormat = nextPf;
+                                        std::shared_ptr<adm::AudioPackFormat> nextPf = packFormat->getReferences<adm::AudioPackFormat>()[0];
                                     }
+                                    auto cfRefs = packFormat->getReferences<adm::AudioChannelFormat>();
+   
+                                    for(auto cfRef : cfRefs)
+                                    {
+                                        int order = 0;
+                                        auto blocks = cfRef->getElements<adm::AudioBlockFormatHoa>();
+                                        if(blocks.size() != 0)
+                                        {
+                                            auto block = blocks[0];
+                                            if(block.has<adm::Order>())order = block.get<adm::Order>().get();
+                                            int newNumOfChnannels = (order + 1) * (order + 1);
+                                            if(newNumOfChnannels > numOfChannels ) numOfChannels = newNumOfChnannels;
+                                        }
+                                    }
+                                    setInMap(objectIds, cfId, objId);
+                                    setInMap(hoaChannels, objId, numOfChannels);
                                 }
-                                setInMap(objectIds, cfId, objId);
-                                setInMap(hoaChannels, objId, numOfChannels);
                             }
                         }
 
