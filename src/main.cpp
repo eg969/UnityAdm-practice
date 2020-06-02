@@ -4,52 +4,52 @@
 extern "C"
 {
 
-    int readAdm(char filePath[2048])
+    DLLEXPORT int readAdm(char filePath[2048])
     {
         return AdmReaderSingleton::getInstance()->readAdm(filePath);
     }
 
-    const char* getLatestException()
+    DLLEXPORT const char* getLatestException()
     {
         return AdmReaderSingleton::getInstance()->getLatestException();
     }
 
-    AudioObjectBlock getNextObjectBlock()
+    DLLEXPORT AudioObjectBlock getNextObjectBlock()
     {
         return Dll::getNextObjectBlock();
     }
 
-    AudioHoaBlock getNextHoaBlock()
+    DLLEXPORT AudioHoaBlock getNextHoaBlock()
     {
         return Dll::getNextHoaBlock();
     }
 
-    AudioSpeakerBlock getNextSpeakerBlock()
+    DLLEXPORT AudioSpeakerBlock getNextSpeakerBlock()
     {
         return Dll::getNextSpeakerBlock();
     }
 
-    AudioBinauralBlock getNextBinauralBlock()
+    DLLEXPORT AudioBinauralBlock getNextBinauralBlock()
     {
         return Dll::getNextBinauralBlock();
     }
 
-    float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
+    DLLEXPORT float* getAudioFrame(int startFrame, int bufferSize, int channelNum)
     {
         return Dll::getAudioFrame(startFrame, bufferSize, channelNum);
     }
 
-    float* getHoaAudioFrame(int startFrame, int bufferSize, int channelNums[], int amountOfChannels)
+    DLLEXPORT float* getHoaAudioFrame(int startFrame, int bufferSize, int channelNums[], int amountOfChannels)
     {
         return Dll::getHoaAudioFrame(startFrame, bufferSize, channelNums, amountOfChannels);
     }
 
-    int getSamplerate()
+    DLLEXPORT int getSamplerate()
     {
         return Dll::getSamplerate();
     }
 
-    int getNumberOfFrames()
+    DLLEXPORT int getNumberOfFrames()
     {
         return Dll::getNumberOfFrames();
     }
