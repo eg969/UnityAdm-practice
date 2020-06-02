@@ -19,6 +19,10 @@ set(SOURCE_FILES
     )
 
 if(WIN32)
+    add_library(bw64_and_adm MODULE 
+        ${SOURCE_FILES}
+    )
+	
     # add_executable(bw64_and_adm
         # WIN32
         # ${SOURCE_FILES}
@@ -29,9 +33,7 @@ if(WIN32)
 	# )
 	
 elseif(APPLE)
-    add_library(bw64_and_adm MODULE 
-        ${SOURCE_FILES}
-    )
+    
 	set_target_properties(bw64_and_adm PROPERTIES
 		MACOSX_BUNDLE TRUE
 		BUNDLE TRUE
@@ -59,6 +61,8 @@ target_compile_features(bw64_and_adm
         cxx_std_17)
 
 install(TARGETS bw64_and_adm
-    BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}/Unity/Assets/plugins
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/Unity/Assets/plugins
+    DESTINATION ${PROJECT_SOURCE_DIR}/Unity/Assets/plugins
+    #ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/Unity/Assets/plugins
+    #BUNDLE DESTINATION ${PROJECT_SOURCE_DIR}/Unity/Assets/plugins
+    #LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/Unity/Assets/plugins
 )
