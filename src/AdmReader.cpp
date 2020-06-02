@@ -9,20 +9,26 @@
 #include <stdio.h>
 
 #include "AdmReader.h"
+namespace {
+    AdmReader* admReader = nullptr;
+}
 
-
-
+AdmReader* getAdmReaderSingleton()
+{
+    // TODO - need a destroy method to tidy this up when unloading lib
+    if(!admReader) {
+        admReader = new AdmReader();
+    }
+    return admReader;
+}
 
 AdmReader::AdmReader()
 {
-    
 }
 
 AdmReader::~AdmReader()
 {
-    
 }
-
 
 bool AdmReader::isCommonDefinition(adm::AudioChannelFormat* channelFormat)
 {
@@ -56,16 +62,16 @@ void AdmReader::setInMap(std::map<Key, Value> &targetMap, Key key, Value value){
 }
 
 //AdmReader
-void AdmReader::readAvalibelBlocks()
+void AdmReader::readAvailableBlocks()
 {
-    
+    // TODO: Whenever using parsedDocument, ensure it is populated! Need error message and return of false.
     auto trackFormats = parsedDocument->getElements<adm::AudioTrackFormat>();
     for(auto trackFormat : trackFormats)
     {
         //auto trackFormat = trackUid->getReference<adm::AudioTrackFormat>();
-        
+
         auto tfIdStr = adm::formatId(trackFormat->get<adm::AudioTrackFormatId>());
-        
+
         for(auto& audioId : audioIds)
         {
             std::string tfIdString = audioId.trackRef();
@@ -93,17 +99,17 @@ void AdmReader::readAvalibelBlocks()
                                     auto objIdStr = adm::formatId(audioObject->get<adm::AudioObjectId>());
                                     int objId = std::stoi(objIdStr.substr(3,8), nullptr, 16);
                                     int numOfChannels = 0;
-                                    
+
                                     std::shared_ptr<adm::AudioPackFormat> nextPf = nullptr;
                                     if(packFormat->getReferences<adm::AudioPackFormat>().size() > 0)nextPf = packFormat->getReferences<adm::AudioPackFormat>()[0];
-                                    
+
                                     while(nextPf)
                                     {
                                         packFormat = nextPf;
                                         std::shared_ptr<adm::AudioPackFormat> nextPf = packFormat->getReferences<adm::AudioPackFormat>()[0];
                                     }
                                     auto cfRefs = packFormat->getReferences<adm::AudioChannelFormat>();
-   
+
                                     for(auto cfRef : cfRefs)
                                     {
                                         int order = 0;
@@ -170,7 +176,7 @@ void AdmReader::readAvalibelBlocks()
                                 setInMap(knownBlocks, cfId, blockId);
                             }
                         }
-                        
+
                         //notCommonDefs.push_back(channelFormat);
                     }
                 }
@@ -218,27 +224,3 @@ const char* AdmReader::getLatestException()
     return latestExceptionMsg.c_str();
 }
 
-AdmReaderSingleton::AdmReaderSingleton() //: singleton { getInstance() }
-{
-    
-}
-AdmReaderSingleton::~AdmReaderSingleton()
-{
-    
-}
-
-std::shared_ptr<AdmReader> AdmReaderSingleton::getInstance()
-{
-    
-    if(std::shared_ptr<AdmReader> singletonInst = singletonStatic.lock())
-    {
-        return singletonInst;
-    }
-    else
-    {
-        singletonInst = std::make_shared<AdmReader>();
-        singletonStatic = singletonInst;
-        return singletonInst;
-    }
-    
-}

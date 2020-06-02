@@ -93,23 +93,23 @@ AudioSpeakerBlock loadSpeakerBlock(adm::AudioBlockFormatDirectSpeakers speakerBl
     currentBlock.cfId = std::stoi(adm::formatId(speakerBlock.get<adm::AudioBlockFormatId>()).substr(3,8), nullptr, 16);
     currentBlock.blockId = speakerBlock.get<adm::AudioBlockFormatId>().get<adm::AudioBlockFormatIdCounter>().get();
     
-    auto channelNums = AdmReaderSingleton::getInstance()->channelNums;
-    auto typeDefs = AdmReaderSingleton::getInstance()->typeDefs;
-    auto objectIds = AdmReaderSingleton::getInstance()->objectIds;
+    auto channelNums = getAdmReaderSingleton()->channelNums;
+    auto typeDefs = getAdmReaderSingleton()->typeDefs;
+    auto objectIds = getAdmReaderSingleton()->objectIds;
     
-    if(AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).has_value())
+    if(getAdmReaderSingleton()->getFromMap(objectIds, currentBlock.cfId).has_value())
     {
-        currentBlock.objId = AdmReaderSingleton::getInstance()->getFromMap(objectIds, currentBlock.cfId).value();
+        currentBlock.objId = getAdmReaderSingleton()->getFromMap(objectIds, currentBlock.cfId).value();
     }
     
-    if(AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).has_value())
+    if(getAdmReaderSingleton()->getFromMap(channelNums, currentBlock.cfId).has_value())
     {
-        currentBlock.channelNum = AdmReaderSingleton::getInstance()->getFromMap(channelNums, currentBlock.cfId).value();
+        currentBlock.channelNum = getAdmReaderSingleton()->getFromMap(channelNums, currentBlock.cfId).value();
     }
     
-    if(AdmReaderSingleton::getInstance()->getFromMap(typeDefs, currentBlock.cfId).has_value())
+    if(getAdmReaderSingleton()->getFromMap(typeDefs, currentBlock.cfId).has_value())
     {
-        currentBlock.typeDef = AdmReaderSingleton::getInstance()->getFromMap(typeDefs, currentBlock.cfId).value();
+        currentBlock.typeDef = getAdmReaderSingleton()->getFromMap(typeDefs, currentBlock.cfId).value();
     }
     
     return currentBlock;

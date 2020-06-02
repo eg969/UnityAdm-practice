@@ -6,12 +6,12 @@ extern "C"
 
     DLLEXPORT int readAdm(char filePath[2048])
     {
-        return AdmReaderSingleton::getInstance()->readAdm(filePath);
+        return getAdmReaderSingleton()->readAdm(filePath);
     }
 
     DLLEXPORT const char* getLatestException()
     {
-        return AdmReaderSingleton::getInstance()->getLatestException();
+        return getAdmReaderSingleton()->getLatestException();
     }
 
     DLLEXPORT AudioObjectBlock getNextObjectBlock()

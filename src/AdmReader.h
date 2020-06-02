@@ -20,13 +20,13 @@ class AdmReader
 public:
     AdmReader();
     ~AdmReader();
-    
+
     bool isCommonDefinition(adm::AudioChannelFormat* channelFormat);
     template<typename Key, typename Value>
     std::optional<Value> getFromMap(std::map<Key, Value> &targetMap, Key key);
     template<typename Key, typename Value>
     void setInMap(std::map<Key, Value> &targetMap, Key key, Value value);
-    void readAvalibelBlocks();
+    void readAvailableBlocks();
 
     //namespace Dll
     //{
@@ -69,14 +69,4 @@ public:
     //std::vector<std::shared_ptr<adm::AudioChannelFormat>> notCommonDefs;
 };
 
-class AdmReaderSingleton {
-public:
-    AdmReaderSingleton();
-    ~AdmReaderSingleton();
-     static std::shared_ptr<AdmReader> getInstance();
-    
-private:
-    inline static std::weak_ptr<AdmReader> singletonStatic;
-    //std::shared_ptr<AdmReader> singleton;
-};
-
+AdmReader* getAdmReaderSingleton();
