@@ -79,7 +79,7 @@ public class AudioBlockHoa
     }
 
 
-    public static void updateAudioBlockHoa(GameObject objectInstance)
+    public static void updateAudioBlockHoa(GameObject hoaVisualisation)
     {
         List<int> clipIdsToProcess;
 
@@ -93,10 +93,19 @@ public class AudioBlockHoa
             if (!hoaAudioSources.ContainsKey(clipId))
             {
                 if (hoaAudioClips.ContainsKey(clipId))
-                { 
+                {
                     if (hoaAudioClips[clipId].numberOfChannels == hoaAudioClips[clipId].channelFormats.Count)
                     {
-                        GameObject hoaAudioSourceInstance = UnityEngine.Object.Instantiate(objectInstance) as GameObject;
+                        GameObject hoaAudioSourceInstance;
+                        if (hoaVisualisation)
+                        {
+                            hoaAudioSourceInstance = UnityEngine.Object.Instantiate(hoaVisualisation) as GameObject;
+                        }
+                        else
+                        {
+                            hoaAudioSourceInstance = new GameObject();
+                        }
+                        hoaAudioSourceInstance.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
                         hoaAudioSourceInstance.AddComponent<AudioSource>();
                         AudioSource audioSource = hoaAudioSourceInstance.GetComponent<AudioSource>();
                         AudioMixer mixer = Resources.Load("ResonanceAudioMixer") as AudioMixer;
@@ -147,7 +156,7 @@ public class AudioBlockHoa
                             numberOfChannels = nextBlock.numOfChannels,
                             channelFormats = new Dictionary<int, UnityHoaChannelFormat>()
                         }
-                    ); 
+                    );
             }
 
             lock (activeHoaAudioClips)

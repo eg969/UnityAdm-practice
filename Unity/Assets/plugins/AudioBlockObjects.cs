@@ -11,7 +11,7 @@ public class AudioBlockObjects
     public static Dictionary<int, UnityObjectsChannelFormat> objectChannelFormats = new Dictionary<int, UnityObjectsChannelFormat>();
     public static List<int> activeObjectChannelFormats = new List<int>();
     public static Dictionary<int, GameObject> audioObjects = new Dictionary<int, GameObject>();
-    
+
 
     public class UnityObjectsChannelFormat
     {
@@ -132,7 +132,7 @@ public class AudioBlockObjects
         }
     }
 
-    public static void updateAudioBlockObjects(GameObject objectInstance)
+    public static void updateAudioBlockObjects(GameObject objectVisualisation)
     {
         List<int> cfIdsToProcess;
 
@@ -145,7 +145,14 @@ public class AudioBlockObjects
         {
             if (!audioObjects.ContainsKey(cfId))
             {
-                GameObject audioObjectInstance = UnityEngine.Object.Instantiate(objectInstance) as GameObject;
+
+                GameObject audioObjectInstance;
+                if (objectVisualisation) {
+                    audioObjectInstance = UnityEngine.Object.Instantiate(objectVisualisation) as GameObject;
+                } else  {
+                    audioObjectInstance = new GameObject();
+                }
+
                 if (objectChannelFormats[cfId].channelNum >= 0)
                 {
                     audioObjectInstance.AddComponent<AudioSource>();
@@ -158,6 +165,7 @@ public class AudioBlockObjects
                     audioSource.Play();
 
                 }
+
                 audioObjectInstance.name = objectChannelFormats[cfId].name;
                 audioObjects.Add(objectChannelFormats[cfId].cfId, audioObjectInstance);
             }
@@ -201,7 +209,7 @@ public class AudioBlockObjects
                 endTime = nextBlock.rTime + nextBlock.duration,
                 duration = nextBlock.duration,
                 interpolationLength = nextBlock.interpolationLength,
-                // TODO: explain why x<-->z 
+                // TODO: explain why x<-->z
                 startPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y), // Will be overwritten if we find a previous block, otherwise (if first block) this is correct
                 endPos = new Vector3(nextBlock.x, nextBlock.z, nextBlock.y),
                 startGain = nextBlock.gain,
