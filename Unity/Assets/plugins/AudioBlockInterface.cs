@@ -18,8 +18,8 @@ public class AudioBlockInterface
     {
         byte[] byteArray;
         byteArray = Encoding.ASCII.GetBytes(filePath + '\0');
-
-        if (readAdm(byteArray) == 0)
+        int res = readAdm(byteArray);
+        if (res == 0)
         {
             Thread getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
             getBlocksThread.Start();
