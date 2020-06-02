@@ -6,13 +6,7 @@ using static BlockTypes;
 
 public class AudioBlockWrapper
 {
-#if UNITY_STANDALONE_OSX
     const string dll = "bw64_and_adm";
-#elif UNITY_STANDALONE_WIN
-        const string dll = " ";
-#else
-        const string dll = " ";
-#endif
 
     [DllImport(dll)]
     public static extern int readAdm(byte[] filePath);
