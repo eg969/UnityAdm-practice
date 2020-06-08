@@ -30,6 +30,21 @@ public class AudioBlockWrapper
     public static extern AdmBinauralAudioBlock getNextBinauralBlock();
 
     [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern int addBearObjectBlock(AdmObjectsAudioBlock audioBlock);
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern int addBearHoaBlock(AdmHoaAudioBlock audioBlock);
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern int addBearSpeakerBlock(AdmSpeakerAudioBlock audioBlock);
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
+    public static extern int addBearBinauralBlock(AdmBinauralAudioBlock audioBlock);
+
+    [DllImport(dll)]
+    public static extern void process();
+
+    [DllImport(dll, CharSet = CharSet.Ansi)]
     public static extern IntPtr getLatestException();
 
     [DllImport(dll)]

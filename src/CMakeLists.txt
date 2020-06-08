@@ -16,6 +16,9 @@ set(SOURCE_FILES
         AudioBlockBinaural.cpp
         AudioBlockDirectSpeakers.cpp
         AudioBlockHoa.cpp
+        catch.hpp
+        unit_test.hpp
+        unit_test.cpp
     )
 
 if(WIN32)

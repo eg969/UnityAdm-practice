@@ -12,16 +12,19 @@ using static BlockTypes;
 
 public class AudioBlockInterface
 {
-    //Thread getBlocksThread;
+    private List<AdmObjectsAudioBlock> objectsBlocks = new List<AdmObjectsAudioBlock>();
+    private List<AdmHoaAudioBlock> hoaBlocks = new List<AdmHoaAudioBlock>();
+    private List<AdmSpeakerAudioBlock> speakerBlocks = new List<AdmSpeakerAudioBlock>();
+    private List<AdmBinauralAudioBlock> binauralBlocks = new List<AdmBinauralAudioBlock>();
 
-    public static bool readFile(string filePath)
+    public static bool readFileForUnityAudio(string filePath)
     {
         byte[] byteArray;
         byteArray = Encoding.ASCII.GetBytes(filePath + '\0');
 
         if (readAdm(byteArray) == 0)
         {
-            Thread getBlocksThread = new Thread(new ThreadStart(getBlocksLoop));
+            Thread getBlocksThread = new Thread(new ThreadStart(getBlocksForUnityLoop));
             getBlocksThread.Start();
             return true;
         }
@@ -33,7 +36,7 @@ public class AudioBlockInterface
         }
     }
 
-    public static void getBlocksLoop()
+    public static void getBlocksForUnityLoop()
     {
         //int i = 0;
         while (true)
@@ -43,19 +46,57 @@ public class AudioBlockInterface
             AdmSpeakerAudioBlock nextSpeakerBlock = getNextSpeakerBlock();
             AdmBinauralAudioBlock nextBinauralBlock = getNextBinauralBlock();
 
+
             loadObjectsAudioBlock(nextObjectBlock);
             loadHoaAudioBlock(nextHoaBlock);
             Thread.Sleep(20);
+        }
+    }
 
-            /*if (i < 5)
+    public static bool readFileForBear(string filePath)
+    {
+        byte[] byteArray;
+        byteArray = Encoding.ASCII.GetBytes(filePath + '\0');
+
+        if (readAdm(byteArray) == 0)
+        {
+            Thread getBlocksThread = new Thread(new ThreadStart(getBlocksForBearLoop));
+            getBlocksThread.Start();
+            return true;
+        }
+        else
+        {
+            string ansi = Marshal.PtrToStringAnsi(getLatestException());
+            UnityEngine.Debug.Log(ansi);
+            return false;
+        }
+    }
+
+    public static void getBlocksForBearLoop()
+    {
+        while (true)
+        {
+            AdmObjectsAudioBlock nextObjectBlock = getNextObjectBlock();
+            AdmHoaAudioBlock nextHoaBlock = getNextHoaBlock();
+            AdmSpeakerAudioBlock nextSpeakerBlock = getNextSpeakerBlock();
+            AdmBinauralAudioBlock nextBinauralBlock = getNextBinauralBlock();
+            bool callProcess = true;
+
+
+            while (callProcess)
             {
-                Thread.Sleep(1000);
+                if (addBearObjectBlock(nextObjectBlock) == 0 && addBearHoaBlock(nextHoaBlock) == 0 && addBearSpeakerBlock(nextSpeakerBlock) == 0 && addBearBinauralBlock(nextBinauralBlock) == 0)
+                {
+                    process();
+                    callProcess = false;
+                }
+                else
+                {
+                    callProcess = true;
+                }
             }
-            else
-            {
-                Thread.Sleep(20);
-            }
-            i++;*/
+
+            Thread.Sleep(20);
         }
     }
 }
