@@ -63,7 +63,7 @@ namespace Tests
         private int moveSpherically2;
         private int channelNum2;
 
-        string filePath = "/Users/edgarsg/Desktop/oject_block_test.wav";
+        string filePath = "/Users/edgarsg/Desktop/object_block_test.wav";
         byte[] byteArray;
 		int newInvalidBlock;
 

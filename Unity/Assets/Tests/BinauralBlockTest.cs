@@ -19,7 +19,7 @@ namespace Tests
         public float rTime;
         public float duration;
         public int channelNum;
-        string filePath = "/Users/edgarsg/Desktop/panned_noise_adm.wav";
+        string filePath = "/Users/edgarsg/Desktop/binaural_block_test.wav";
         byte[] byteArray;
 		int newInvalidBlock;
 
@@ -88,7 +88,7 @@ namespace Tests
         [Test]
         public void DurationTest()
         {
-            Assert.AreEqual(1.0, duration);
+            Assert.AreEqual(2.0, duration);
         }
 
         [Test]

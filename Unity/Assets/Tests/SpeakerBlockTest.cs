@@ -32,7 +32,7 @@ namespace Tests
         public byte[] horizontalEdge;
         public int typeDef;
         public int channelNum;
-        string filePath = "/Users/edgarsg/Desktop/panned_noise_adm.wav";
+        string filePath = "/Users/edgarsg/Desktop/speaker_block_test.wav";
         byte[] byteArray;
 		int newInvalidBlock;
 
@@ -108,13 +108,13 @@ namespace Tests
         [Test]
         public void RTimeTest()
         {
-            Assert.AreEqual(1.0, rTime);
+            Assert.AreEqual(0.3, rTime);
         }
 
         [Test]
         public void DurationTest()
         {
-            Assert.AreEqual(1.0, duration);
+            Assert.AreEqual(1.6, duration);
         }
 
         [Test]
@@ -138,55 +138,55 @@ namespace Tests
         [Test]
         public void AzimuthTest()
         {
-            Assert.AreEqual(1.0, azimuth);
+            Assert.AreEqual(25.0, azimuth);
         }
 
         [Test]
         public void ElevationTest()
         {
-            Assert.AreEqual(1.0, elevation);
+            Assert.AreEqual(47.0, elevation);
         }
 
         [Test]
         public void DistanceTest()
         {
-            Assert.AreEqual(1.0, distance);
+            Assert.AreEqual(865.0, distance);
         }
 
         [Test]
         public void AzimuthMaxTest()
         {
-            Assert.AreEqual(1.0, azimuthMax);
+            Assert.AreEqual(69.0, azimuthMax);
         }
 
         [Test]
         public void ElevationMaxTest()
         {
-            Assert.AreEqual(1.0, elevationMax);
+            Assert.AreEqual(46.0, elevationMax);
         }
 
         [Test]
         public void DistanceMaxTest()
         {
-            Assert.AreEqual(1.0, distanceMax);
+            Assert.AreEqual(0.6, distanceMax);
         }
 
         [Test]
         public void AzimuthMinTest()
         {
-            Assert.AreEqual(1.0, azimuthMin);
+            Assert.AreEqual(15.0, azimuthMin);
         }
 
         [Test]
         public void ElevationMinTest()
         {
-            Assert.AreEqual(1.0, elevationMin);
+            Assert.AreEqual(62.0, elevationMin);
         }
 
         [Test]
-        public void distanceMinTest()
+        public void DistanceMinTest()
         {
-            Assert.AreEqual(1.0, distanceMin);
+            Assert.AreEqual(0.3, distanceMin);
         }
 
         [Test]

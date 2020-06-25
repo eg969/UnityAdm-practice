@@ -26,7 +26,7 @@ namespace Tests
         public int screenRef;
         public byte[] normalization;
         public byte[] equation;
-        string filePath = "/Users/edgarsg/Desktop/panned_noise_adm.wav";
+        string filePath = "/Users/edgarsg/Desktop/hoa_block_test.wav";
         byte[] byteArray;
 		int newInvalidBlock;
 
@@ -92,25 +92,25 @@ namespace Tests
         [Test]
         public void RTimeTest()
         {
-            Assert.AreEqual(1.0, rTime);
+            Assert.AreEqual(0, rTime);
         }
 
         [Test]
         public void DurationTest()
         {
-            Assert.AreEqual(1.0, duration);
+            Assert.AreEqual(0, duration);
         }
 
         [Test]
         public void OrderTest()
         {
-            Assert.AreEqual(1, order);
+            Assert.AreEqual(0, order);
         }
 
         [Test]
         public void DegreeTest()
         {
-            Assert.AreEqual(1, degree);
+            Assert.AreEqual(0, degree);
         }
 
         [Test]
@@ -122,13 +122,13 @@ namespace Tests
         [Test]
         public void NfcRefDistTest()
         {
-            Assert.AreEqual(1, nfcRefDist);
+            Assert.AreEqual(0.0, nfcRefDist);
         }
 
         [Test]
         public void ScreenRefTest()
         {
-            Assert.AreEqual(1, screenRef);
+            Assert.AreEqual(0, screenRef);
         }
 
         [Test]
